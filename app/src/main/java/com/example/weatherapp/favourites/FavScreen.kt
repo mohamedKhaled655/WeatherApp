@@ -116,6 +116,7 @@ fun MapScreen(navHostController: NavHostController) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                 )
+                
             )
         }
     ) { paddingValues ->
