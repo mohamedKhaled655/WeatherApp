@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 
 @Entity(tableName = "favorite_locations")
-data class FavoriteLocation(
+data class FavoriteLocationEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val country:String,

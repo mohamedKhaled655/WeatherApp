@@ -46,10 +46,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.alarms.AlarmScreen
+import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.favourites.FavLocationFactory
 import com.example.weatherapp.favourites.FavouriteScreen
 import com.example.weatherapp.favourites.MapScreen
 import com.example.weatherapp.home_screen.HomeFactory
@@ -257,7 +259,8 @@ class MainActivity : ComponentActivity() {
                 HomeScreen(viewModel(factory = HomeFactory(
                     WeatherRepositoryImpl.getInstance(
                         WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        //WeatherLocalDataSource(WeatherDataBase)
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+
                     )
                 )),
                     viewModel(factory = LocationViewModelFactory(
@@ -267,10 +270,32 @@ class MainActivity : ComponentActivity() {
             }
 
             composable<ScreenRoute.FavouriteScreenRoute> {
-                FavouriteScreen(navHostController)
+                FavouriteScreen(
+                    navHostController,
+                    viewModel(
+                        factory = FavLocationFactory(
+                            WeatherRepositoryImpl.getInstance(
+                                WeatherRemoteDataSource(RetrofitHelper.apiService),
+                                WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+
+                            )
+                        )
+                    )
+                    )
             }
             composable<ScreenRoute.MapScreenRoute> {
-                MapScreen(navHostController)
+                MapScreen(
+                    navHostController,
+                    viewModel(
+                        factory = FavLocationFactory(
+                            WeatherRepositoryImpl.getInstance(
+                                WeatherRemoteDataSource(RetrofitHelper.apiService),
+                                WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+
+                            )
+                        )
+                    )
+                    )
             }
             composable<ScreenRoute.NotificationScreenRoute> {
                 AlarmScreen()

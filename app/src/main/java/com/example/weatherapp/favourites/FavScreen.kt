@@ -1,10 +1,6 @@
 package com.example.weatherapp.favourites
 
-import android.content.Context
-import android.location.Geocoder
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,33 +8,49 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ButtonColors
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,9 +59,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.weatherapp.data.models.FavoriteLocation
-import com.example.weatherapp.ui.theme.DarkBlue
+import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.ui.theme.Spacing
+import com.example.weatherapp.utils.Response
 import com.example.weatherapp.utils.ScreenRoute
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -59,48 +71,173 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import java.util.Locale
 
 
 @Composable
-fun FavouriteScreen(navHostController: NavHostController) {
+fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteViewModel) {
+    LaunchedEffect(Unit) {
+        viewModel.getFavLocations()
+    }
+    val locationState = viewModel.favLocations.collectAsState()
+    val messageState = viewModel.message.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = "Fav")
+    var recentlyDeletedItem: FavoriteLocationEntity? by remember { mutableStateOf(null) }
 
+    Scaffold(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.navigationBars),
+            bottomBar = {},
+        snackbarHost = {
+
+                SnackbarHost(
+                    hostState = snackBarHostState,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(bottom = 80.dp)) }
+
+
+    )
+    { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background))
+        {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                when (val state = locationState.value) {
+                    is Response.Loading -> {
+                        CircularProgressIndicator()
+                    }
+                    is Response.Success -> {
+
+                        if (state.data.isEmpty()) {
+                            Text(
+                                text = "No favorite locations yet.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .windowInsetsPadding(WindowInsets.statusBars)
+                                    .windowInsetsPadding(WindowInsets.navigationBars)
+                                    .fillMaxSize()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                items(state.data.size) { index ->
+                                    FavItem(state.data[index]){
+                                        recentlyDeletedItem = state.data[index]
+                                        viewModel.removeLocationFromFav(state.data[index])
+                                    }
+                                    Spacer(Modifier.padding(vertical = 8.dp))
+                                    HorizontalDivider()
+                                }
+                            }
+                        }
+
+                    }
+                    is Response.Failure -> {
+                        Text(
+                            text = "Error: ${state.error.message}",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    Toast.makeText(context, "Maps", Toast.LENGTH_SHORT).show()
+                    navHostController.navigate(ScreenRoute.MapScreenRoute)
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(vertical = 120.dp, horizontal = 24.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
         }
 
-        FloatingActionButton(
-            onClick = {
-                Toast.makeText(context, "Maps", Toast.LENGTH_SHORT).show()
-                navHostController.navigate(ScreenRoute.MapScreenRoute)
-            },
-            containerColor = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(vertical = 120.dp, horizontal = 24.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add")
+    }
+    LaunchedEffect(messageState.value) {
+        if (messageState.value == "Removed Location Successfully") {
+            val result = snackBarHostState.showSnackbar(
+                message = messageState.value.toString(),
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Short
+            )
+
+            if (result == SnackbarResult.ActionPerformed) {
+                recentlyDeletedItem?.let { viewModel.addLocationToFav(it) }
+                recentlyDeletedItem = null
+            }
+            viewModel.clearMessage()
+        }
+
+
+    }
+
+}
+
+
+@Composable
+fun FavItem(model: FavoriteLocationEntity, onDelete: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                    )
+                )
+            )
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = model.country,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Text(
+            text = model.name,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        IconButton(onClick = {
+            onDelete()
+        }) {
+            Icon(Icons.Default.Delete, contentDescription = "Delete")
         }
     }
 }
 
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(navHostController: NavHostController) {
+fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel) {
+    val locationState = viewModel.locationDetails.collectAsState()
+    val messageState = viewModel.message.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 3f) // Zoom to show countries
+        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 3f)
     }
     val selectedLocation = remember { mutableStateOf(LatLng(30.0444, 31.2357)) }
 
@@ -116,7 +253,7 @@ fun MapScreen(navHostController: NavHostController) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                 )
-                
+
             )
         }
     ) { paddingValues ->
@@ -125,7 +262,7 @@ fun MapScreen(navHostController: NavHostController) {
                 .fillMaxSize()
                 .padding(
                     top = paddingValues.calculateTopPadding(),
-                    bottom = paddingValues.calculateBottomPadding() + 60.dp // Consider Bottom Nav Bar
+                    bottom = paddingValues.calculateBottomPadding() + 60.dp
                 )
         ) {
             GoogleMap(
@@ -135,14 +272,14 @@ fun MapScreen(navHostController: NavHostController) {
                 uiSettings = MapUiSettings(zoomControlsEnabled = false,zoomGesturesEnabled = true),
                 onMapClick = { latLng ->
                     selectedLocation.value = latLng
-                    val address = getLocationDetailFromLatLng(context, latLng)
-                    Toast.makeText(context, "Selected: ${address.country}", Toast.LENGTH_SHORT).show()
+                    val address = viewModel.fetchLocationDetailFromLatLng(context, latLng)
+                    Toast.makeText(context, "Selected: ${locationState.value?.country}", Toast.LENGTH_SHORT).show()
                 }
             ) {
                 Marker(
                     state = MarkerState(position = selectedLocation.value),
                     title = "Selected Location",
-                    snippet = getLocationDetailFromLatLng(context, selectedLocation.value).name
+                    snippet = locationState.value?.name
                 )
             }
 
@@ -165,28 +302,35 @@ fun MapScreen(navHostController: NavHostController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Country: ${getLocationDetailFromLatLng(context, selectedLocation.value).country}",
+                            text = "Country: ${locationState.value?.country}",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "City: ${getLocationDetailFromLatLng(context, selectedLocation.value).name}",
+                            text = "City: ${locationState.value?.name}",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ElevatedButton(
                             onClick = {
-                                val locationDetails = getLocationDetailFromLatLng(context, selectedLocation.value)
+                                val locationDetails = locationState.value
+                                viewModel.addLocationToFav(locationDetails)
                                 Toast.makeText(
                                     context,
-                                    "Selected Location: ${locationDetails.country}, ${locationDetails.name}",
+                                    "Selected Location: ${locationDetails?.country}, ${locationDetails?.name}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 navHostController.popBackStack()
                             },
-                            modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(12.dp)
+                                ),
                             shape = RoundedCornerShape(12.dp),
                             elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 0.dp),
                             colors = ButtonDefaults.elevatedButtonColors(
@@ -211,25 +355,5 @@ fun MapScreen(navHostController: NavHostController) {
 
 
 
-fun getLocationDetailFromLatLng(context: Context, latLng: LatLng): FavoriteLocation {
-    return try {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
 
-        if (addresses.isNullOrEmpty()) {
-            return FavoriteLocation(country =  "Unknown Country", name = "Unknown City", latitude = 0.0, longitude = 0.0)
-        }
-
-        val address = addresses[0]
-        FavoriteLocation(
-            country = address.countryName ?: "Unknown Country",
-            name = address.locality ?: address.subAdminArea ?: "Unknown City",
-            latitude = address.latitude,
-            longitude = address.longitude,
-
-        )
-    } catch (e: Exception) {
-        Log.e("MapError", "Error getting location details", e)
-        FavoriteLocation(country =  "Unknown Country", name = "Unknown City", latitude = 0.0, longitude = 0.0)    }
-}
 
