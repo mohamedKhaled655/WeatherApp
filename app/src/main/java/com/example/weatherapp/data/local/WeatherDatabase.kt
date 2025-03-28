@@ -6,13 +6,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.weatherapp.data.models.AlertEntity
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 
 
-@Database(entities = [FavoriteLocationEntity::class], version = 2)
+@Database(entities = [FavoriteLocationEntity::class,AlertEntity::class], version = 3)
 abstract class WeatherDatabase : RoomDatabase() {
     abstract fun getWeatherDao():WeatherDao
+    abstract fun weatherAlertDao():WeatherAlertDao
 
     companion object {
         @Volatile
@@ -24,7 +26,9 @@ abstract class WeatherDatabase : RoomDatabase() {
                     context.applicationContext,
                     WeatherDatabase::class.java,
                     "weather_database"
-                ).build()
+                )
+                   // .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

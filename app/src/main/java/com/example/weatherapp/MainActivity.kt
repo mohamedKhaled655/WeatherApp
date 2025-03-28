@@ -1,26 +1,20 @@
 package com.example.weatherapp
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -29,15 +23,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -61,19 +51,8 @@ import com.example.weatherapp.home_screen.HomeScreen
 import com.example.weatherapp.home_screen.LocationViewModel
 import com.example.weatherapp.home_screen.LocationViewModelFactory
 import com.example.weatherapp.setting.SettingScreen
-import com.example.weatherapp.ui.theme.DarkGradientColors
-import com.example.weatherapp.ui.theme.LightGradientColors
-import com.example.weatherapp.ui.theme.Spacing
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.utils.ScreenRoute
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import java.util.Locale
-import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
     private  val TAG = "MainActivity"
@@ -203,9 +182,9 @@ class MainActivity : ComponentActivity() {
             bottomBar = {
             BottomBar(navHostController) },
 
-        ) { it ->
-            Log.i("TAG", "AppScreen: $it")
-            SetUpNavHost()
+        ) { innerPadding ->
+            Log.i("TAG", "AppScreen: $innerPadding")
+            SetUpNavHost(innerPadding)
         }
     }
 
@@ -250,10 +229,10 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun SetUpNavHost() {
+    fun SetUpNavHost(innerPadding: PaddingValues) {
         val repoForGetWeatherDao=WeatherRepositoryImpl.getInstance(
             WeatherRemoteDataSource(RetrofitHelper.apiService),
-            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
 
         )
 
@@ -267,7 +246,7 @@ class MainActivity : ComponentActivity() {
                 HomeScreen(viewModel(factory = HomeFactory(
                     WeatherRepositoryImpl.getInstance(
                         WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
 
                     )
                 )),
@@ -294,7 +273,7 @@ class MainActivity : ComponentActivity() {
                     )
             }
             composable<ScreenRoute.NotificationScreenRoute> {
-                AlarmScreen()
+                AlarmScreen(innerPadding)
             }
             composable<ScreenRoute.SettingScreenRoute> {
                 SettingScreen()
@@ -309,7 +288,7 @@ class MainActivity : ComponentActivity() {
                 DetailsFavScreen(viewModel(factory = HomeFactory(
                     WeatherRepositoryImpl.getInstance(
                         WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
 
                     )
                 )),viewModel(factory = LocationViewModelFactory(

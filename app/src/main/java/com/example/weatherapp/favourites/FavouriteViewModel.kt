@@ -35,6 +35,7 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
                 result
                     .catch {
                             ex->_favLocations.value=Response.Failure(ex)
+                        println(ex.message)
                     }
                     .collect{
                         if (it != null) {
@@ -61,6 +62,7 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
                         _message.value = "this Location is not in favorites"
                     }
                 }catch (ex:Exception){
+                    println(ex.message)
                     _message.value = "An error occurred: ${ex.message}"
                 }
             }

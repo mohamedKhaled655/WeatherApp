@@ -1,6 +1,7 @@
 package com.example.weatherapp.data.repo
 
 import com.example.weatherapp.data.local.LocalDataSource
+import com.example.weatherapp.data.models.AlertEntity
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.data.models.WeatherResponse
@@ -52,6 +53,26 @@ class WeatherRepositoryImpl private constructor(
 
     override suspend fun removeFavLocation(favLocation: FavoriteLocationEntity): Int {
         return localDataSource.deleteFavLocation(favLocation)
+    }
+
+    override suspend fun getAllAlert(): Flow<List<AlertEntity>> {
+        return localDataSource.getAllAlert()
+    }
+
+    override suspend fun getActiveAlerts(): Flow<List<AlertEntity>> {
+        return localDataSource.getActiveAlerts()
+    }
+
+    override suspend fun getDeactivateAlert(alertEntity: AlertEntity) {
+        return localDataSource.getDeactivateAlert(alertEntity)
+    }
+
+    override suspend fun insertAlert(alertEntity: AlertEntity): Long {
+        return localDataSource.insertAlert(alertEntity)
+    }
+
+    override suspend fun deleteAlert(alertEntity: AlertEntity?): Int {
+        return localDataSource.deleteAlert(alertEntity)
     }
 
 
