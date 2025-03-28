@@ -45,12 +45,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.weatherapp.alarms.AlarmScreen
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.remote.WeatherRemoteDataSource
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.favourites.DetailsFavScreen
 import com.example.weatherapp.favourites.FavLocationFactory
 import com.example.weatherapp.favourites.FavouriteScreen
 import com.example.weatherapp.favourites.MapScreen
@@ -249,7 +251,13 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun SetUpNavHost() {
+        val repoForGetWeatherDao=WeatherRepositoryImpl.getInstance(
+            WeatherRemoteDataSource(RetrofitHelper.apiService),
+            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
 
+        )
+
+        val favFactory=FavLocationFactory(repoForGetWeatherDao)
         NavHost(
             navController = navHostController,
             startDestination = ScreenRoute.HomeScreenRoute,
@@ -273,13 +281,7 @@ class MainActivity : ComponentActivity() {
                 FavouriteScreen(
                     navHostController,
                     viewModel(
-                        factory = FavLocationFactory(
-                            WeatherRepositoryImpl.getInstance(
-                                WeatherRemoteDataSource(RetrofitHelper.apiService),
-                                WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
-
-                            )
-                        )
+                        factory = favFactory
                     )
                     )
             }
@@ -287,13 +289,7 @@ class MainActivity : ComponentActivity() {
                 MapScreen(
                     navHostController,
                     viewModel(
-                        factory = FavLocationFactory(
-                            WeatherRepositoryImpl.getInstance(
-                                WeatherRemoteDataSource(RetrofitHelper.apiService),
-                                WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
-
-                            )
-                        )
+                        factory = favFactory
                     )
                     )
             }
@@ -303,30 +299,24 @@ class MainActivity : ComponentActivity() {
             composable<ScreenRoute.SettingScreenRoute> {
                 SettingScreen()
             }
-           /* composable<ScreenRoute.SearchScreenRoute>() {
-                val searchViewModel: SearchViewModel = viewModel()
-                SearchScreen(viewModel = searchViewModel)
+
+
+
+            composable<ScreenRoute.DetailsFavouriteScreenRoute> {backStackEntry->
+                val lat=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().latitude
+                val long=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().longitude
+
+                DetailsFavScreen(viewModel(factory = HomeFactory(
+                    WeatherRepositoryImpl.getInstance(
+                        WeatherRemoteDataSource(RetrofitHelper.apiService),
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao())
+
+                    )
+                )),viewModel(factory = LocationViewModelFactory(
+                    this@MainActivity
+                )),lat,long)
             }
-            composable<ScreenRoute.AllProductsScreenRoute> {
-                AllProductsScreen(
-                    viewModel(factory = AllProductFactory(
-                        ProductRepositoryImpl.getInstance(
-                            ProductsRemoteDataSource(RetrofitHelper.apiService),
-                            ProductLocalDataSource(ProductDatabase.getInstance(this@MainActivity).getProductDao())
-                        )
-                    ))
-                )
-            }
-            composable<ScreenRoute.AllFavScreenRoute> {
-                FavScreen(
-                    viewModel(factory = FavProductFactory(
-                        ProductRepositoryImpl.getInstance(
-                            ProductsRemoteDataSource(RetrofitHelper.apiService),
-                            ProductLocalDataSource(ProductDatabase.getInstance(this@MainActivity).getProductDao())
-                        )
-                    ))
-                )
-            }*/
+
         }
     }
 }

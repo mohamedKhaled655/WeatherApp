@@ -1,6 +1,7 @@
 package com.example.weatherapp.utils
 
 import com.example.weatherapp.R
+import com.example.weatherapp.data.models.FavoriteLocationEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,6 +22,9 @@ sealed class ScreenRoute(
 
     @Serializable
     object MapScreenRoute : ScreenRoute("Map", R.drawable.baseline_favorite_24)
+
+    @Serializable
+    data class DetailsFavouriteScreenRoute(val latitude: Double, val longitude: Double) : ScreenRoute("DetailsFavourite", R.drawable.heart)
 
 
 

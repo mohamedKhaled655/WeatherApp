@@ -3,6 +3,7 @@ package com.example.weatherapp.favourites
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -130,7 +131,7 @@ fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteVie
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 items(state.data.size) { index ->
-                                    FavItem(state.data[index]){
+                                    FavItem(state.data[index],navHostController){
                                         recentlyDeletedItem = state.data[index]
                                         viewModel.removeLocationFromFav(state.data[index])
                                     }
@@ -188,7 +189,7 @@ fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteVie
 
 
 @Composable
-fun FavItem(model: FavoriteLocationEntity, onDelete: () -> Unit) {
+fun FavItem(model: FavoriteLocationEntity,navHostController: NavHostController, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,9 +203,15 @@ fun FavItem(model: FavoriteLocationEntity, onDelete: () -> Unit) {
                     )
                 )
             )
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .clickable {
+
+                navHostController.navigate(ScreenRoute.DetailsFavouriteScreenRoute(model.latitude,model.longitude))
+
+            },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+
     ) {
         Text(
             text = model.country,
