@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">WeatherApp</string>
+    <string name="feels_like">✨ Feels like %1$s %2$s</string>
+    <string name="three_hourly_details" >Three Hourly Details</string>
+    <string name="daily_detailed">Daily Detailed</string>
+    <string name="sunset">🔥 Sunset %1$s</string>
+    <string name="sunrise">⛅ Sunrise %1$s</string>
+    <string name="sun_rise">sunrise</string>
+    <string name="sun_set">sunset</string>
+    <string name="pressure">pressure</string>
+    <string name="humidity">humidity</string>
+    <string name="wind">wind</string>
+
 </resources>

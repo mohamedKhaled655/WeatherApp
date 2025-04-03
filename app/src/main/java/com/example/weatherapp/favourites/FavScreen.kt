@@ -244,7 +244,7 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
 
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 3f)
+        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 4f)
     }
     val selectedLocation = remember { mutableStateOf(LatLng(30.0444, 31.2357)) }
 

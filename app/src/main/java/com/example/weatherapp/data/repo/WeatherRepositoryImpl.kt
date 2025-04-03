@@ -4,14 +4,20 @@ import com.example.weatherapp.data.local.LocalDataSource
 import com.example.weatherapp.data.models.AlertEntity
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.FavoriteLocationEntity
+import com.example.weatherapp.data.models.WeatherAlert
 import com.example.weatherapp.data.models.WeatherResponse
 import com.example.weatherapp.data.remote.RemoteDataSource
+import com.example.weatherapp.utils.Lang
+import com.example.weatherapp.utils.LocationType
+import com.example.weatherapp.utils.TempUnit
+import com.example.weatherapp.utils.WindSpeedUnit
 import kotlinx.coroutines.flow.Flow
 
 class WeatherRepositoryImpl private constructor(
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource
 ) : WeatherRepository{
+
 
     companion object{
         private var INSTANCE:WeatherRepositoryImpl?=null
@@ -28,18 +34,18 @@ class WeatherRepositoryImpl private constructor(
         }
     }
 
-    override suspend fun getCurrentWeather(lat: Double, long: Double): CurrentWeatherModel {
+    override suspend fun getCurrentWeather(lat: Double, long: Double): Flow<CurrentWeatherModel> {
         return remoteDataSource.getCurrentWeather(
             lat,
             long,
-            "en",
+            localDataSource.getLanguage().toString().lowercase(),
             "9ea5f900ad4ca28e2ff79a89a0a7ff75")
     }
 
     override suspend fun getForecast(lat: Double, long: Double): Flow<WeatherResponse> {
        return remoteDataSource.getForecast(lat,
            long,
-           "en",
+           localDataSource.getLanguage().toString().lowercase(),
            "9ea5f900ad4ca28e2ff79a89a0a7ff75")
     }
 
@@ -55,7 +61,39 @@ class WeatherRepositoryImpl private constructor(
         return localDataSource.deleteFavLocation(favLocation)
     }
 
-    override suspend fun getAllAlert(): Flow<List<AlertEntity>> {
+    override fun getLocationType(): LocationType {
+        return localDataSource.getLocationType()
+    }
+
+    override fun saveLocationType(locationType: LocationType) {
+        localDataSource.saveLocationType(locationType)
+    }
+
+    override fun getTemperatureUnit(): TempUnit {
+       return localDataSource.getTemperatureUnit()
+    }
+
+    override fun saveTemperatureUnit(unit: TempUnit) {
+        localDataSource.saveTemperatureUnit(unit)
+    }
+
+    override fun getWindSpeedUnit(): WindSpeedUnit {
+        return localDataSource.getWindSpeedUnit()
+    }
+
+    override fun saveWindSpeedUnit(unit: WindSpeedUnit) {
+        localDataSource.saveWindSpeedUnit(unit)
+    }
+
+    override fun getLanguage(): Lang {
+       return localDataSource.getLanguage()
+    }
+
+    override fun saveLanguage(language: Lang) {
+       localDataSource.saveLanguage(language)
+    }
+
+/*    override suspend fun getAllAlert(): Flow<List<AlertEntity>> {
         return localDataSource.getAllAlert()
     }
 
@@ -73,6 +111,22 @@ class WeatherRepositoryImpl private constructor(
 
     override suspend fun deleteAlert(alertEntity: AlertEntity?): Int {
         return localDataSource.deleteAlert(alertEntity)
+    }
+
+    override suspend fun getAlertWithId(alertId: Int): AlertEntity {
+        return localDataSource.getAlertWithId(alertId)
+    }*/
+
+    override suspend fun fetchAllAlerts(): Flow<List<WeatherAlert>> {
+        return localDataSource.fetchAllAlerts()
+    }
+
+    override suspend fun addNewAlert(alert: WeatherAlert): Long {
+       return localDataSource.addNewAlert(alert)
+    }
+
+    override suspend fun removeAlert(alertEntity: WeatherAlert?): Int {
+        return localDataSource.removeAlert(alertEntity)
     }
 
 

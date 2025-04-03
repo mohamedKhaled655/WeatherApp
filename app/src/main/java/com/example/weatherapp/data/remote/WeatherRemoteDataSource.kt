@@ -15,8 +15,8 @@ class WeatherRemoteDataSource(private val service: WeatherApiService) : RemoteDa
         long: Double,
         language: String,
         apiKey: String
-    ): CurrentWeatherModel {
-        return service.getCurrentWeather(lat,long,language,apiKey)
+    ): Flow<CurrentWeatherModel> = flow {
+        emit(service.getCurrentWeather(lat,long,language,apiKey))
     }
 
     override suspend fun getForecast(

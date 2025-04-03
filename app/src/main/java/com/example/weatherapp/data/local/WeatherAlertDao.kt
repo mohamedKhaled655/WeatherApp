@@ -25,4 +25,7 @@ interface WeatherAlertDao {
 
     @Query("SELECT * FROM weather_alerts")
     fun getAllAlerts(): Flow<List<AlertEntity>>
+
+    @Query("select * from weather_alerts where id = :alertId limit 1")
+    fun getAlertWithId(alertId: Int): AlertEntity
 }

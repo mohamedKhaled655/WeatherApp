@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.WeatherResponse
 import com.example.weatherapp.data.repo.WeatherRepository
+import com.example.weatherapp.utils.*
 import com.example.weatherapp.utils.Response
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -33,11 +34,36 @@ class HomeViewModel(private val repo: WeatherRepository): ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    ////sharedPref
+    private val _locationType = MutableStateFlow(repo.getLocationType())
+    val locationType: StateFlow<LocationType> = _locationType
+
+    private val _tempUnit = MutableStateFlow(repo.getTemperatureUnit())
+    val tempUnit: StateFlow<TempUnit> = _tempUnit
+
+    private val _windSpeedUnit = MutableStateFlow(repo.getWindSpeedUnit())
+    val windSpeedUnit: StateFlow<WindSpeedUnit> = _windSpeedUnit
+
+    private val _language = MutableStateFlow(repo.getLanguage())
+    val language: StateFlow<Lang> = _language
+
+    fun updateSettings() {
+        _locationType.value = repo.getLocationType()
+        _tempUnit.value = repo.getTemperatureUnit()
+        _windSpeedUnit.value = repo.getWindSpeedUnit()
+        _language.value = repo.getLanguage()
+    }
+    /////////
+
     fun getCurrentWeather(lat: Double, long: Double){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result=repo.getCurrentWeather(lat,long)
-                currentWeatherState.value= Response.Success<CurrentWeatherModel>(result)
+                result.collect{result ->
+                    currentWeatherState.value = Response.Success(result)
+
+                }
+                
             }catch (ex:Exception){
                 currentWeatherState.value=Response.Failure(ex)
                 _message.value = "An error occurred ${ex.message}"
@@ -72,6 +98,8 @@ class HomeViewModel(private val repo: WeatherRepository): ViewModel() {
         getCurrentWeather(lat, long)
         getForecastWeather(lat, long)
     }
+
+
 
 }
 

@@ -68,6 +68,8 @@ import com.example.weatherapp.home_screen.MainTemperatureDisplay
 import com.example.weatherapp.home_screen.WeatherHeader
 
 import com.example.weatherapp.utils.CustomIconImage
+import com.example.weatherapp.utils.TempUnit
+import com.example.weatherapp.utils.WindSpeedUnit
 import com.example.weatherapp.utils.toCelsius
 import com.example.weatherapp.utils.toFormattedDate
 import com.example.weatherapp.utils.toFormattedDay
@@ -125,8 +127,8 @@ fun DetailsFavScreen(viewModel: HomeViewModel,locationViewModel: LocationViewMod
                                 CircularProgressIndicator()
                             }
                             is Response.Success -> {
-                                WeatherHeader(state.data)
-                                MainTemperatureDisplay(state.data)
+                                WeatherHeader(state.data,TempUnit.Celsius)
+                                MainTemperatureDisplay(state.data,TempUnit.Celsius,WindSpeedUnit.MeterPerSec)
                             }
                             is Response.Failure -> {
                                 Text(

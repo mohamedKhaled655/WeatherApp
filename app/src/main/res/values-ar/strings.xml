@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">طقسى</string>
+    <string name="feels_like">✨ يشعر بـ %1$s %2$s</string>
+    <string name="three_hourly_details" >تفاصيل كل ثلاث ساعات</string>
+    <string name="daily_detailed">تفاصيل يومية للطقس</string>
+    <string name="sunset">🔥 الغروب %1$s</string>
+    <string name="sunrise">⛅ الشروق %1$s</string>
+    <string name="sun_set">ألغروب</string>
+    <string name="sun_rise">الشروق</string>
+    <string name="pressure">الضغط الجوي</string>
+    <string name="humidity">نسبة الرطوبة</string>
+    <string name="wind">سرعة الرياح</string>
+</resources>

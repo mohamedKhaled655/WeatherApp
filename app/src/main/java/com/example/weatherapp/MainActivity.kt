@@ -1,17 +1,22 @@
 package com.example.weatherapp
 
+
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,12 +27,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -36,7 +43,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.work.WorkManager
 import com.example.weatherapp.alarms.AlarmScreen
+import com.example.weatherapp.alarms.AlertFactory
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.remote.RetrofitHelper
@@ -51,6 +60,7 @@ import com.example.weatherapp.home_screen.HomeScreen
 import com.example.weatherapp.home_screen.LocationViewModel
 import com.example.weatherapp.home_screen.LocationViewModelFactory
 import com.example.weatherapp.setting.SettingScreen
+import com.example.weatherapp.setting.SettingsFactory
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.utils.ScreenRoute
 
@@ -151,6 +161,12 @@ class MainActivity : ComponentActivity() {
             LocationManager.NETWORK_PROVIDER)
     }
 
+
+    ///not
+
+
+
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -213,7 +229,7 @@ class MainActivity : ComponentActivity() {
                             contentDescription = item.title
                         )
                     },
-                    label = { Text(item.title) },
+                   // label = { Text(item.title) },
                     selected = selectedItem.value == index,
                     onClick = {
                         selectedItem.value = index
@@ -232,7 +248,9 @@ class MainActivity : ComponentActivity() {
     fun SetUpNavHost(innerPadding: PaddingValues) {
         val repoForGetWeatherDao=WeatherRepositoryImpl.getInstance(
             WeatherRemoteDataSource(RetrofitHelper.apiService),
-            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
+            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                //WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                WeatherDatabase.getInstance(this@MainActivity).alertDao())
 
         )
 
@@ -243,10 +261,12 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize()
         ) {
             composable<ScreenRoute.HomeScreenRoute> {
-                HomeScreen(viewModel(factory = HomeFactory(
+                HomeScreen(innerPadding,viewModel(factory = HomeFactory(
                     WeatherRepositoryImpl.getInstance(
                         WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                           // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                            WeatherDatabase.getInstance(this@MainActivity).alertDao())
 
                     )
                 )),
@@ -273,10 +293,20 @@ class MainActivity : ComponentActivity() {
                     )
             }
             composable<ScreenRoute.NotificationScreenRoute> {
-                AlarmScreen(innerPadding)
+                AlarmScreen(innerPadding, viewModel(factory = AlertFactory(
+                    WeatherRepositoryImpl.getInstance(
+                        WeatherRemoteDataSource(RetrofitHelper.apiService),
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                           // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                            WeatherDatabase.getInstance(this@MainActivity).alertDao()
+                        )
+
+                    ), application
+                )
+                ))
             }
             composable<ScreenRoute.SettingScreenRoute> {
-                SettingScreen()
+                SettingScreen(innerPadding, viewModel(factory = SettingsFactory(repoForGetWeatherDao)))
             }
 
 
@@ -288,7 +318,9 @@ class MainActivity : ComponentActivity() {
                 DetailsFavScreen(viewModel(factory = HomeFactory(
                     WeatherRepositoryImpl.getInstance(
                         WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao())
+                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                            //WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                            WeatherDatabase.getInstance(this@MainActivity).alertDao())
 
                     )
                 )),viewModel(factory = LocationViewModelFactory(
@@ -299,4 +331,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
+
 

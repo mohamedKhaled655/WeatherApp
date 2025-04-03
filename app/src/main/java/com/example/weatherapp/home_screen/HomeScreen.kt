@@ -44,25 +44,44 @@ import com.example.weatherapp.ui.theme.WeatherTheme
 import com.example.weatherapp.utils.Response
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.sp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.weatherapp.data.local.SharedPreferencesHelper
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.WeatherResponse
 
 import com.example.weatherapp.utils.CustomIconImage
+import com.example.weatherapp.utils.CustomLottieUrl
+import com.example.weatherapp.utils.LocaleHelper
+import com.example.weatherapp.utils.TempUnit
+import com.example.weatherapp.utils.WindSpeedUnit
+import com.example.weatherapp.utils.convertTemperature
+import com.example.weatherapp.utils.convertWindSpeed
 import com.example.weatherapp.utils.toCelsius
+import com.example.weatherapp.utils.toFahrenheit
 import com.example.weatherapp.utils.toFormattedDate
 import com.example.weatherapp.utils.toFormattedDay
 import com.example.weatherapp.utils.toFormattedTime
+import com.example.weatherapp.utils.toKelvin
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel,locationViewModel: LocationViewModel) {
+fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationViewModel: LocationViewModel) {
     //locationViewModel.getFreshLocation()
     LaunchedEffect(Unit) {
         locationViewModel.getFreshLocation()
@@ -81,75 +100,90 @@ fun HomeScreen(viewModel: HomeViewModel,locationViewModel: LocationViewModel) {
     val isRefreshingState by viewModel.isRefreshing.collectAsState()
 
 
+    viewModel.updateSettings()
+    val locationType by viewModel.locationType.collectAsState()
+    val tempUnit by viewModel.tempUnit.collectAsState()
+    val windSpeedUnit by viewModel.windSpeedUnit.collectAsState()
+    val language by viewModel.language.collectAsState()
+
     Scaffold(
+        modifier = Modifier.padding(
+
+
+             bottom = innerPadding.calculateBottomPadding()-10.dp
+        ),
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { paddingValues ->
-
-        Box (
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = backgroundGradient
-                    )
-                )
-                .padding(Spacing.medium)
+        CompositionLocalProvider(
+            LocalLayoutDirection provides if (LocaleHelper.isRTL(language.toString())) LayoutDirection.Rtl else LayoutDirection.Ltr
         ){
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(isRefreshingState),
-                onRefresh={
-                    locationViewModel.getFreshLocation()
-                    viewModel.refreshWeather(location.latitude, location.longitude)
+            Box (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = backgroundGradient
+                        )
+                    )
 
-                }
             ){
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.medium),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        when (val state = weatherState.value) {
-                            is Response.Loading -> {
-                                CircularProgressIndicator()
-                            }
-                            is Response.Success -> {
-                                WeatherHeader(state.data)
-                                MainTemperatureDisplay(state.data)
-                            }
-                            is Response.Failure -> {
-                                Text(
-                                    text = "Error: ${state.error.message}",
-                                    modifier = Modifier.padding(16.dp)
-                                )
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshingState),
+                    onRefresh={
+                        locationViewModel.getFreshLocation()
+                        viewModel.refreshWeather(location.latitude, location.longitude)
+
+                    }
+                ){
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            when (val state = weatherState.value) {
+                                is Response.Loading -> {
+                                    CircularProgressIndicator()
+                                }
+                                is Response.Success -> {
+                                    WeatherHeader(state.data,tempUnit)
+                                    MainTemperatureDisplay(state.data,tempUnit,windSpeedUnit)
+                                }
+                                is Response.Failure -> {
+                                    Text(
+                                        text = "Error: ${state.error.message}",
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    item {
-                        when (val state = forecastWeatherState.value) {
-                            is Response.Loading -> {
-                                CircularProgressIndicator()
-                            }
-                            is Response.Success -> {
-                                HourlyForecast(state.data)
-                                Spacer(modifier = Modifier.height(Spacing.large))
-                                DailyDetailed(state.data)
-                            }
-                            is Response.Failure -> {
-                                Text(
-                                    text = "Error: ${state.error.message}",
-                                    modifier = Modifier.padding(16.dp)
-                                )
+                        item {
+                            when (val state = forecastWeatherState.value) {
+                                is Response.Loading -> {
+                                    CircularProgressIndicator()
+                                }
+                                is Response.Success -> {
+                                    HourlyForecast(state.data)
+                                    Spacer(modifier = Modifier.height(Spacing.large))
+                                    DailyDetailed(state.data)
+                                }
+                                is Response.Failure -> {
+                                    Text(
+                                        text = "Error: ${state.error.message}",
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
+            }
         }
+
 
     }
 }
@@ -157,25 +191,30 @@ fun HomeScreen(viewModel: HomeViewModel,locationViewModel: LocationViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun WeatherHeader( model:CurrentWeatherModel) {
+fun WeatherHeader( model:CurrentWeatherModel,tempUnit: TempUnit) {
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         Column(
             modifier = Modifier.weight(2f),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = model.weather.get(0).description,
+                text = model.weather[0].description,
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.height(Spacing.small))
             Text(
-                text = "✨ Feels like ${model.main.feels_like.toCelsius()}°",
+                text = stringResource(
+                    R.string.feels_like,
+                    convertTemperature(tempUnit, model.main.feels_like),
+                    tempUnit.symbol
+                ),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -203,25 +242,30 @@ fun WeatherHeader( model:CurrentWeatherModel) {
 
 }
 
+
+
 @Composable
-fun MainTemperatureDisplay(model:CurrentWeatherModel) {
+fun MainTemperatureDisplay(model:CurrentWeatherModel,tempUnit: TempUnit,windSpeedUnit:WindSpeedUnit) {
+    val composition by rememberLottieComposition(spec = LottieCompositionSpec.Url("https://lottie.host/a377149e-b277-4906-8c27-7458099ccbe9/rBB1rXg6L2.lottie"))
+
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Spacing.medium)
+            .padding(horizontal = 16.dp,vertical = Spacing.medium)
     ) {
         Row(
             verticalAlignment = Alignment.Top
         ) {
             Text(
                // text = if (temperature > 0) "+$temperature" else "$temperature",
-                text = "${model.main.temp.toCelsius()}",
+                text = convertTemperature(tempUnit,model.main.temp),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.displayLarge
             )
             Text(
-                text = "°C",
+                text = tempUnit.symbol,
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.displayMedium,
                 modifier = Modifier.padding(top = Spacing.medium)
@@ -242,7 +286,10 @@ fun MainTemperatureDisplay(model:CurrentWeatherModel) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "🔥 Sunset ${model.sys.sunset.toFormattedTime(model.timezone)}",
+                text = stringResource(
+                    R.string.sunset,
+                    model.sys.sunset.toFormattedTime(model.timezone)
+                ),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -250,50 +297,176 @@ fun MainTemperatureDisplay(model:CurrentWeatherModel) {
             Spacer(modifier = Modifier.width(Spacing.medium))
 
             Text(
-                text = "⛅ Sunrise ${model.sys.sunrise.toFormattedTime(model.timezone)}",
+                text = stringResource(
+                    R.string.sunrise,
+                    model.sys.sunrise.toFormattedTime(model.timezone)
+                ),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )
         }
         Spacer(modifier = Modifier.height(Spacing.medium))
 
-        /*Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                .padding(vertical = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent
+            )
+        ){
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            )
                         )
                     )
-                )
-                .padding(vertical = 12.dp, horizontal = 16.dp)
-        ){}*/
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ){
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+
+                ){
+                    Text(
+                        stringResource(R.string.wind),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                    Text("${convertWindSpeed(windSpeedUnit,model.wind.speed)} ${windSpeedUnit.symbol}",style = MaterialTheme.typography.bodySmall)
+                    CustomLottieUrl("https://lottie.host/a377149e-b277-4906-8c27-7458099ccbe9/rBB1rXg6L2.lottie")
+                }
+
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        stringResource(R.string.humidity),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                    Text("${model.main.humidity}",style = MaterialTheme.typography.bodySmall)
+                    CustomLottieUrl("https://lottie.host/3e29c3b8-653c-46e8-b61a-e64a0bd4f1f1/VrFwzEzKit.lottie")
+                }
+
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        stringResource(R.string.pressure),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                    Text("${model.main.pressure}",style = MaterialTheme.typography.bodySmall)
+                    CustomLottieUrl("https://lottie.host/ddf9fa4c-2fe4-4eca-9717-376355456d3b/wNmWhHqRv5.lottie",)
+                }
+
+
+
+            }
+
+            HorizontalDivider(Modifier.padding( 8.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            )
+                        )
+                    )
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ){
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        "${model.weather[0].main}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                    Text("${model.weather[0].description}",style = MaterialTheme.typography.bodySmall)
+                    CustomIconImage(model.weather[0].icon,50)
+                }
+
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        stringResource(R.string.sun_rise),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                    Text("${model.sys.sunrise.toFormattedTime(model.timezone)}",style = MaterialTheme.typography.bodySmall)
+                    CustomLottieUrl("https://lottie.host/dad04c5d-3be4-42a4-9bda-8ae6614fee0b/MX6HTsoYGP.lottie",50)
+                }
+
+                Column (
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Text(
+                        stringResource(R.string.sun_set),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text("${model.sys.sunset.toFormattedTime(model.timezone)}", style = MaterialTheme.typography.bodySmall)
+                    CustomLottieUrl("https://lottie.host/9f824b23-db1d-4a00-8419-b2dd8a23787f/HbktwoOzP6.lottie",50)
+                }
+
+
+
+            }
+        }
+
 
     }
 }
+
 
 
 @Composable
 fun HourlyForecast(weatherModel: WeatherResponse) {
 
     Text(
-        text = "Three Hourly Details",
+        text = stringResource(R.string.three_hourly_details),
         color = MaterialTheme.colorScheme.onBackground,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
 
     )
     LazyRow(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(weatherModel.list.size) { index ->
@@ -326,7 +499,9 @@ fun DailyWeatherItem(icon:String,hour: String, temperature: String) {
         Text(
             text = hour,
             color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+
+
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -351,16 +526,17 @@ fun DailyDetailed(weatherModel: WeatherResponse) {
     val dailyWeatherList = weatherModel.list.filter { it.dt_txt.contains("12:00:00") }
 
     Text(
-        text = "Daily Detailed",
+        text = stringResource(R.string.daily_detailed),
         color = MaterialTheme.colorScheme.onBackground,
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     )
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
             .height(600.dp)
     ) {
         items(dailyWeatherList.size){ index->

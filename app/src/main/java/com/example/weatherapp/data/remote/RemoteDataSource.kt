@@ -7,6 +7,6 @@ import org.intellij.lang.annotations.Language
 import retrofit2.Response
 
 interface RemoteDataSource {
-    suspend fun getCurrentWeather(lat: Double, long: Double,language:String,apiKey:String): CurrentWeatherModel
+    suspend fun getCurrentWeather(lat: Double, long: Double,language:String,apiKey:String): Flow<CurrentWeatherModel>
     suspend fun getForecast(lat: Double, long: Double,language:String,apiKey:String): Flow<WeatherResponse>
 }
