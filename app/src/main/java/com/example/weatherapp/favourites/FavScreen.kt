@@ -58,8 +58,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.weatherapp.R
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.ui.theme.Spacing
 import com.example.weatherapp.utils.Response
@@ -86,20 +88,23 @@ fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteVie
     var recentlyDeletedItem: FavoriteLocationEntity? by remember { mutableStateOf(null) }
 
     Scaffold(
-        modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.statusBars)
             .windowInsetsPadding(WindowInsets.navigationBars),
             bottomBar = {},
         snackbarHost = {
 
                 SnackbarHost(
                     hostState = snackBarHostState,
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.navigationBars)
                         .padding(bottom = 80.dp)) }
 
 
     )
     { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)
+        Box(modifier = Modifier
+            .padding(paddingValues)
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background))
         {
@@ -116,7 +121,7 @@ fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteVie
 
                         if (state.data.isEmpty()) {
                             Text(
-                                text = "No favorite locations yet.",
+                                text = stringResource(R.string.no_favorite_locations_yet),
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(16.dp)
                             )
@@ -206,7 +211,12 @@ fun FavItem(model: FavoriteLocationEntity,navHostController: NavHostController, 
             .padding(horizontal = 8.dp, vertical = 8.dp)
             .clickable {
 
-                navHostController.navigate(ScreenRoute.DetailsFavouriteScreenRoute(model.latitude,model.longitude))
+                navHostController.navigate(
+                    ScreenRoute.DetailsFavouriteScreenRoute(
+                        model.latitude,
+                        model.longitude
+                    )
+                )
 
             },
         verticalAlignment = Alignment.CenterVertically,
@@ -241,7 +251,6 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
     val locationState = viewModel.locationDetails.collectAsState()
     val messageState = viewModel.message.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
-
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 5f)
@@ -251,7 +260,7 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Location", color = Color.White) },
+                title = { Text(stringResource(R.string.select_location), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navHostController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -280,12 +289,13 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
                 onMapClick = { latLng ->
                     selectedLocation.value = latLng
                     val address = viewModel.fetchLocationDetailFromLatLng(context, latLng)
-                    Toast.makeText(context, "Selected: ${locationState.value?.country}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.selected)+"${locationState.value?.country}", Toast.LENGTH_SHORT).show()
                 }
             ) {
                 Marker(
                     state = MarkerState(position = selectedLocation.value),
-                    title = "Selected Location",
+                    title = stringResource(R.string.selected_location),
                     snippet = locationState.value?.name
                 )
             }
@@ -309,13 +319,14 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Country: ${locationState.value?.country}",
+                            text = stringResource(R.string.country) +" ${locationState.value?.country}",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+
                         Text(
-                            text = "City: ${locationState.value?.name}",
+                            text = stringResource(R.string.city) + locationState.value?.name,
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -324,11 +335,11 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
                             onClick = {
                                 val locationDetails = locationState.value
                                 viewModel.addLocationToFav(locationDetails)
-                                Toast.makeText(
+                                /*Toast.makeText(
                                     context,
-                                    "Selected Location: ${locationDetails?.country}, ${locationDetails?.name}",
+                                    "Selected Location:${locationDetails?.country}, ${locationDetails?.name}",
                                     Toast.LENGTH_SHORT
-                                ).show()
+                                ).show()*/
                                 navHostController.popBackStack()
                             },
                             modifier = Modifier
@@ -345,7 +356,7 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
                                 contentColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
-                            Text("Confirm Location")
+                            Text(stringResource(R.string.confirm_location))
                         }
                     }
                 }

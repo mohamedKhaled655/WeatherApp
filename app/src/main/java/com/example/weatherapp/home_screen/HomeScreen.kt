@@ -116,7 +116,7 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
     val tempUnit by viewModel.tempUnit.collectAsState()
     val windSpeedUnit by viewModel.windSpeedUnit.collectAsState()
     val language by viewModel.language.collectAsState()
-
+    val layoutDirection = if (language == Lang.AR) LayoutDirection.Rtl else LayoutDirection.Ltr
     Scaffold(
         modifier = Modifier.padding(
 
@@ -125,9 +125,7 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
         ),
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { paddingValues ->
-        CompositionLocalProvider(
-            LocalLayoutDirection provides if (LocaleHelper.isRTL(language.toString())) LayoutDirection.Rtl else LayoutDirection.Ltr
-        ){
+        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             Box (
                 modifier = Modifier
                     .fillMaxSize()
@@ -194,7 +192,6 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
 
             }
         }
-
 
     }
 }

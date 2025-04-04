@@ -21,5 +21,32 @@
     <string name="wind_speed_unit">Wind Speed Unit</string>
     <string name="language">Language</string>
     <string name="english">English</string>
+    <string name="select_location">Select Location</string>
+    <string name="selected">Selected:</string>
+    <string name="selected_location">Selected Location</string>
+    <string name="country">Country:</string>
+    <string name="city">"City: "</string>
+    <string name="confirm_location">Confirm Location</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="select_time">Select Time</string>
+    <string name="add_weather_alert">Add Weather Alert</string>
+    <string name="alert_type_e_g_rain_storm">Alert Type (e.g., Rain, Storm)</string>
+    <string name="set_desc">set desc</string>
+    <string name="start_date_and_time">Start Date and Time:</string>
+    <string name="alert_duration">Alert Duration:</string>
+    <string name="select_duration">Select Duration</string>
+    <string name="alert_type">Alert Type:</string>
+    <string name="notification">Notification</string>
+    <string name="alarm_sound">Alarm Sound</string>
+    <string name="set_alert">Set Alert</string>
+    <string name="weather_alerts">Weather Alerts</string>
+    <string name="no_alerts_set_tap_to_add_a_new_alert">No alerts set. Tap + to add a new alert</string>
+    <string name="weather_alert_set_successfully">Weather alert set successfully</string>
+    <string name="start">Start:</string>
+    <string name="end">End:</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="no_favorite_locations_yet">No favorite locations yet.</string>
 
 </resources>

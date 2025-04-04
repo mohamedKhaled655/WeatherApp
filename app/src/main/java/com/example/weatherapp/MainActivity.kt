@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -210,12 +211,12 @@ class MainActivity : ComponentActivity() {
         //val navController = rememberNavController()
         Scaffold(
             Modifier.background(MaterialTheme.colorScheme.background),
-           containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.background,
 
             bottomBar = {
-            BottomBar(navHostController) },
+                BottomBar(navHostController) },
 
-        ) { innerPadding ->
+            ) { innerPadding ->
             Log.i("TAG", "AppScreen: $innerPadding")
             SetUpNavHost(innerPadding)
         }
@@ -233,6 +234,9 @@ class MainActivity : ComponentActivity() {
         val navBackStackEntry = navHostController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry.value?.destination
         val selectedItem = remember { mutableStateOf(0) }
+
+
+
         NavigationBar(
 
             containerColor =MaterialTheme.colorScheme.background
@@ -287,6 +291,8 @@ class MainActivity : ComponentActivity() {
         ))
 
         val language by settingsViewModel.language.collectAsState()
+        Log.i(TAG, "SetUpNavHost:${language} ")
+
         val layoutDirection = if (language == Lang.AR) LayoutDirection.Rtl else LayoutDirection.Ltr
         CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             NavHost(

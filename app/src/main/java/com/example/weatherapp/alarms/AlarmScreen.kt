@@ -21,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.weatherapp.R
 import com.example.weatherapp.data.models.WeatherAlert
 import com.example.weatherapp.utils.toFormattedTime
 import java.text.SimpleDateFormat
@@ -83,7 +85,7 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
                 .padding(paddingValues)
         ) {
             Text(
-                text = "Weather Alerts",
+                text = stringResource(R.string.weather_alerts),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -94,7 +96,7 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No alerts set. Tap + to add a new alert",
+                        text = stringResource(R.string.no_alerts_set_tap_to_add_a_new_alert),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -135,7 +137,8 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
                 //viewModel.sendWeatherAlert(alert)
                 scheduleNotificationWithWorkManager(context, alert)
                 showAddDialog = false
-                Toast.makeText(context, "Weather alert set successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,
+                    context.getString(R.string.weather_alert_set_successfully), Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -186,12 +189,12 @@ fun AlertItem(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Start: ${dateFormat.format(Date(alert.startTime))}",
+                text = stringResource(R.string.start) +" ${dateFormat.format(Date(alert.startTime))}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
-                text = "End: ${dateFormat.format(Date(alert.endTime))}",
+                text = stringResource(R.string.end) +"${dateFormat.format(Date(alert.endTime))}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -203,13 +206,15 @@ fun AlertItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (alert.isNotification) "Notification" else "Alarm Sound",
+                    text = if (alert.isNotification) stringResource(R.string.notification) else stringResource(R.string.alarm_sound),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (alert.isActive) "Active" else "Inactive",
+                        text = if (alert.isActive) stringResource(R.string.active) else stringResource(
+                            R.string.inactive
+                        ) ,
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (alert.isActive)
                             MaterialTheme.colorScheme.primary
@@ -284,14 +289,14 @@ fun AddWeatherAlertDialog(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDatePicker = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -308,7 +313,7 @@ fun AddWeatherAlertDialog(
 
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Select Time") },
+            title = { Text(stringResource(R.string.select_time)) },
             text = {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -331,14 +336,14 @@ fun AddWeatherAlertDialog(
                         showTimePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showTimePicker = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -346,7 +351,7 @@ fun AddWeatherAlertDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Weather Alert") },
+        title = { Text(stringResource(R.string.add_weather_alert)) },
         text = {
             Column(
                 modifier = Modifier
@@ -356,7 +361,7 @@ fun AddWeatherAlertDialog(
                 TextField(
                     value = alertType,
                     onValueChange = { alertType = it },
-                    label = { Text("Alert Type (e.g., Rain, Storm)") },
+                    label = { Text(stringResource(R.string.alert_type_e_g_rain_storm)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -365,7 +370,7 @@ fun AddWeatherAlertDialog(
                 TextField(
                     value = desc,
                     onValueChange = { desc = it },
-                    label = { Text("set desc") },
+                    label = { Text(stringResource(R.string.set_desc)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -373,7 +378,7 @@ fun AddWeatherAlertDialog(
 
 
                 Text(
-                    text = "Start Date and Time:",
+                    text = stringResource(R.string.start_date_and_time),
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -403,7 +408,7 @@ fun AddWeatherAlertDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Alert Duration:",
+                    text = stringResource(R.string.alert_duration),
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -420,7 +425,7 @@ fun AddWeatherAlertDialog(
                             IconButton(onClick = { showDurationMenu = true }) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Select Duration"
+                                    contentDescription = stringResource(R.string.select_duration)
                                 )
                             }
                         }
@@ -445,7 +450,7 @@ fun AddWeatherAlertDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Alert Type:",
+                    text = stringResource(R.string.alert_type),
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -459,7 +464,7 @@ fun AddWeatherAlertDialog(
                         selected = useNotification,
                         onClick = { useNotification = true }
                     )
-                    Text(text = "Notification")
+                    Text(text = stringResource(R.string.notification))
 
                     Spacer(modifier = Modifier.width(16.dp))
 
@@ -467,7 +472,7 @@ fun AddWeatherAlertDialog(
                         selected = !useNotification,
                         onClick = { useNotification = false }
                     )
-                    Text(text = "Alarm Sound")
+                    Text(text = stringResource(R.string.alarm_sound))
                 }
             }
         },
@@ -489,7 +494,7 @@ fun AddWeatherAlertDialog(
                 },
                 enabled = alertType.isNotBlank()
             ) {
-                Text("Set Alert")
+                Text(stringResource(R.string.set_alert))
             }
         },
         dismissButton = {
@@ -500,7 +505,7 @@ fun AddWeatherAlertDialog(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
