@@ -37,7 +37,7 @@ class AlertWorker(
 
         if (alertType == "notification") {
             val notificationHelper = NotificationHelper(context)
-            notificationHelper.sendNotification(
+            /*notificationHelper.sendNotification(
                 WeatherAlert(
                     id = alertId,
                     type = alertType,
@@ -46,7 +46,7 @@ class AlertWorker(
                     isNotification = true,
                     isActive = true
                 )
-            )
+            )*/
         } else {
             playAlarmSound()
         }

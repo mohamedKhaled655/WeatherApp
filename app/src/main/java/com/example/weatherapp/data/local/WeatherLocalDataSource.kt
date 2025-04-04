@@ -1,6 +1,7 @@
 package com.example.weatherapp.data.local
 
 import com.example.weatherapp.data.models.AlertEntity
+import com.example.weatherapp.data.models.Coord
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.data.models.WeatherAlert
@@ -33,34 +34,55 @@ class WeatherLocalDataSource (
         }
     }
 
-/*    override suspend fun getAllAlert(): Flow<List<AlertEntity>> {
-        return alertDao.getAllAlerts()
+    override suspend fun getAllWeathers(): Flow<List<CurrentWeatherModel>> {
+        return dao.getAllWeathers()
     }
 
-    override suspend fun getActiveAlerts(): Flow<List<AlertEntity>> {
-        return alertDao.getActiveAlerts()
+    override suspend fun getWeatherByLatLng(lat: Double, lon: Double): CurrentWeatherModel? {
+        val coord=Coord(lat,lon)
+        return dao.getWeatherByLatLng(coord)
     }
 
-    override suspend fun getDeactivateAlert(alertEntity: AlertEntity){
-        return alertDao.deactivateAlert(alertEntity.id)
+    override suspend fun insertWeather(weatherModel: CurrentWeatherModel): Long {
+       return dao.insertWeather(weatherModel)
     }
 
-    override suspend fun insertAlert(alertEntity: AlertEntity): Long {
-        return alertDao.insertAlert(alertEntity)
-    }
-
-    override suspend fun deleteAlert(alertEntity: AlertEntity?): Int {
-        return if(alertEntity!=null){
-            alertDao.removeAlert(alertEntity)
+    override suspend fun deleteWeather(weatherModel: CurrentWeatherModel?): Int {
+        return if(weatherModel!=null){
+            dao.deleteWeather(weatherModel)
         }else{
             -1
         }
     }
 
-    override suspend fun getAlertWithId(alertId: Int): AlertEntity {
+    /*    override suspend fun getAllAlert(): Flow<List<AlertEntity>> {
+            return alertDao.getAllAlerts()
+        }
 
-        return alertDao.getAlertWithId(alertId)
-    }*/
+        override suspend fun getActiveAlerts(): Flow<List<AlertEntity>> {
+            return alertDao.getActiveAlerts()
+        }
+
+        override suspend fun getDeactivateAlert(alertEntity: AlertEntity){
+            return alertDao.deactivateAlert(alertEntity.id)
+        }
+
+        override suspend fun insertAlert(alertEntity: AlertEntity): Long {
+            return alertDao.insertAlert(alertEntity)
+        }
+
+        override suspend fun deleteAlert(alertEntity: AlertEntity?): Int {
+            return if(alertEntity!=null){
+                alertDao.removeAlert(alertEntity)
+            }else{
+                -1
+            }
+        }
+
+        override suspend fun getAlertWithId(alertId: Int): AlertEntity {
+
+            return alertDao.getAlertWithId(alertId)
+        }*/
 
     override suspend fun fetchAllAlerts(): Flow<List<WeatherAlert>> {
         return alaram.getAllAlerts()

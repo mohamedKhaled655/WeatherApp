@@ -59,8 +59,19 @@ class HomeViewModel(private val repo: WeatherRepository): ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result=repo.getCurrentWeather(lat,long)
+
                 result.collect{result ->
+                    println("weather: ${result.name}")
+                    repo.insertWeather(result)
                     currentWeatherState.value = Response.Success(result)
+
+                    if(repo.insertWeather(result)>0){
+                        println("Inserting weather: $result")
+                        println("succ!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    }else{
+                        repo.getWeatherByLatLng(lat,long)
+                        println("!!!!!!!!!!!!!!!!!!!!!!!!!${repo.getWeatherByLatLng(lat,long)?.name}")
+                    }
 
                 }
                 

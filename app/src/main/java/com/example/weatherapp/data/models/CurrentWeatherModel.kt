@@ -4,10 +4,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-//@Entity(tableName = "current_weather")
+@Entity(tableName = "weather")
 data class CurrentWeatherModel(
-   // @PrimaryKey
+    @PrimaryKey
     val id: Int,
+
     val coord: Coord,
     val weather: List<Weather>,
     val base: String,

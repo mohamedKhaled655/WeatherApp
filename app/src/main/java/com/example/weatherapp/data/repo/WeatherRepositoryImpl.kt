@@ -61,6 +61,23 @@ class WeatherRepositoryImpl private constructor(
         return localDataSource.deleteFavLocation(favLocation)
     }
 
+    override suspend fun getAllWeathers(): Flow<List<CurrentWeatherModel>> {
+        return localDataSource.getAllWeathers()
+    }
+
+    override suspend fun getWeatherByLatLng(lat: Double, lon: Double): CurrentWeatherModel? {
+        return localDataSource.getWeatherByLatLng(lat,lon)
+    }
+
+
+    override suspend fun insertWeather(weatherModel: CurrentWeatherModel): Long {
+        return localDataSource.insertWeather(weatherModel)
+    }
+
+    override suspend fun deleteWeather(weatherModel: CurrentWeatherModel?): Int {
+        return localDataSource.deleteWeather(weatherModel)
+    }
+
     override fun getLocationType(): LocationType {
         return localDataSource.getLocationType()
     }

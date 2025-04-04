@@ -108,10 +108,13 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
                         AlertItem(
                             alert = alert,
                             onToggleActive = { toggledAlert ->
-                                viewModel.addAlert(toggledAlert.copy(isActive = !toggledAlert.isActive))
+                               // viewModel.addAlert(toggledAlert.copy(isActive = !toggledAlert.isActive))
+
                             },
                             onDelete = {
+                                cancelWeatherAlert(context)
                                 viewModel.removeAlert(alert)
+
                             }
                         )
                     }
@@ -125,6 +128,8 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
             onDismiss = { showAddDialog = false },
             onAddAlert = { alert ->
                 viewModel.addAlert(alert)
+                viewModel.sendWeatherAlert(alert)
+                scheduleNotificationWithWorkManager(context, alert)
                 showAddDialog = false
                 Toast.makeText(context, "Weather alert set successfully", Toast.LENGTH_SHORT).show()
             }

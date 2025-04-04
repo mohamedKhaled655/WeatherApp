@@ -1,18 +1,19 @@
 package com.example.weatherapp.data.local
 
 import android.content.Context
-import androidx.databinding.adapters.Converters
+
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.weatherapp.data.models.AlertEntity
+
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.data.models.WeatherAlert
 
 
-@Database(entities = [FavoriteLocationEntity::class,AlertEntity::class, WeatherAlert::class], version = 4)
+@Database(entities = [FavoriteLocationEntity::class,CurrentWeatherModel::class, WeatherAlert::class], version = 7)
+@TypeConverters(Converter::class)
 abstract class WeatherDatabase : RoomDatabase() {
     abstract fun getWeatherDao():WeatherDao
     //abstract fun weatherAlertDao():WeatherAlertDao

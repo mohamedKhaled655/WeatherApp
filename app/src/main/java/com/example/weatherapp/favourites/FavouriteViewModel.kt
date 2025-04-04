@@ -50,7 +50,7 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
         }
     }
 
-    fun removeLocationFromFav(favoriteLocationEntity: FavoriteLocationEntity?){
+   /* fun removeLocationFromFav(favoriteLocationEntity: FavoriteLocationEntity?){
         if (favoriteLocationEntity!=null){
             viewModelScope.launch(Dispatchers.IO) {
                 try {
@@ -69,9 +69,41 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
         }else{
             _message.value = "Could not remove Location, missing data"
         }
+    }*/
+
+    fun removeLocationFromFav(location: FavoriteLocationEntity?){
+        if (location == null) {
+            _message.value = "Could not add Location, missing data"
+            return
+        }
+
+        viewModelScope.launch {
+            val result = repo.removeFavLocation(location)
+            if (result > 0) {
+                _message.value = "Removed Location Successfully"
+            } else {
+                _message.value = "this Location is not in favorites"
+            }
+        }
     }
 
-    fun addLocationToFav(favoriteLocationEntity: FavoriteLocationEntity?){
+    fun addLocationToFav(location: FavoriteLocationEntity?) {
+        if (location == null) {
+            _message.value = "Could not add Location, missing data"
+            return
+        }
+
+        viewModelScope.launch {
+            val result = repo.addFavLocation(location)
+            if (result > 0) {
+                _message.value = "Added Location Successfully"
+            } else {
+                _message.value = "this Location is not in favorites"
+            }
+        }
+    }
+
+   /* fun addLocationToFav(favoriteLocationEntity: FavoriteLocationEntity?){
         if (favoriteLocationEntity!=null){
             viewModelScope.launch(Dispatchers.IO) {
                 try {
@@ -89,7 +121,7 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
         }else{
             _message.value = "Could not add Location, missing data"
         }
-    }
+    }*/
 
 
 

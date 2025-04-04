@@ -21,6 +21,12 @@ interface WeatherRepository {
     suspend fun removeFavLocation(favLocation: FavoriteLocationEntity):Int
 
 
+    suspend fun getAllWeathers():Flow<List<CurrentWeatherModel>>
+    suspend fun getWeatherByLatLng(lat: Double, lon: Double): CurrentWeatherModel?
+    suspend fun insertWeather(weatherModel: CurrentWeatherModel):Long
+    suspend fun deleteWeather(weatherModel: CurrentWeatherModel?):Int
+
+
     ///sharedPref
     fun getLocationType(): LocationType
     fun saveLocationType(locationType: LocationType)

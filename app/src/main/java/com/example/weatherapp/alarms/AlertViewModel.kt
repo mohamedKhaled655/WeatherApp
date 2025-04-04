@@ -1,6 +1,12 @@
 package com.example.weatherapp.alarms
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.media.RingtoneManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -34,18 +40,44 @@ class AlertViewModel (private val repo: WeatherRepository,private val applicatio
     fun addAlert(alert: WeatherAlert) {
         viewModelScope.launch {
             repo.addNewAlert(alert)
-            scheduleWeatherAlert(application.applicationContext, alert)
+           // scheduleNotificationWithWorkManager(application.applicationContext, alert)
+           // scheduleWeatherAlert(application.applicationContext, alert)
 
         }
     }
 
     fun removeAlert(alert: WeatherAlert) {
         viewModelScope.launch {
+
+            cancelWeatherAlert(application.applicationContext)
             repo.removeAlert(alert)
+
+
             WorkManager.getInstance(application.applicationContext)
                 .cancelAllWorkByTag(alert.id.toString())
 
         }
+    }
+
+     fun sendWeatherAlert(alert: WeatherAlert) {
+        val channelId = "weather_alerts"
+        val notificationManager = application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Weather Alerts", NotificationManager.IMPORTANCE_HIGH)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        val notification = NotificationCompat.Builder(application.applicationContext, channelId)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle(alert.type)
+            .setContentText("description")
+            .setSound(alarmSound)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        notificationManager.notify(alert.id, notification)
     }
 
 

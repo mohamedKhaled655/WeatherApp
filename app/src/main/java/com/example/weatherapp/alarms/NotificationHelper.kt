@@ -9,6 +9,7 @@ import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.models.WeatherAlert
@@ -20,7 +21,29 @@ class NotificationHelper(private val context: Context) {
         const val ALARM_CHANNEL_ID = "weather_alarm_channel"
     }
 
-    fun createNotificationChannel() {
+     fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //val manager = getSystemService(NotificationManager::class.java)
+            val manager = context.getSystemService(NotificationManager::class.java)
+            val existingChannel = manager.getNotificationChannel("channel_id")
+
+            if (existingChannel == null) {
+                val channel = NotificationChannel(
+                    "channel_id",
+                    "Notification Channel",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Channel for weather alerts"
+                    enableLights(true)
+                    enableVibration(true)
+                }
+                manager.createNotificationChannel(channel)
+            }
+        }
+    }
+
+
+    /*fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = context.getSystemService(NotificationManager::class.java)
 
@@ -35,14 +58,7 @@ class NotificationHelper(private val context: Context) {
             )
 
             // Create alarm channel
-            createChannel(
-                notificationManager,
-                ALARM_CHANNEL_ID,
-                "Weather Alarms",
-                "Urgent weather alerts with alarm sound",
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
-                AudioAttributes.USAGE_ALARM
-            )
+
         }
     }
 
@@ -85,11 +101,11 @@ class NotificationHelper(private val context: Context) {
         )
 
         // Determine which sound type to use based on alert configuration
-        val soundUri = if (alert.isNotification) {
+        *//*val soundUri = if (alert.isNotification) {
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         } else {
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        }
+        }*//*
 
         // Determine which channel to use based on alert configuration
         val channelId = if (alert.isNotification) NOTIFICATION_CHANNEL_ID else ALARM_CHANNEL_ID
@@ -104,10 +120,10 @@ class NotificationHelper(private val context: Context) {
             .setContentIntent(pendingIntent)
 
         // For pre-Oreo devices, we need to set the sound directly on the notification
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        *//*if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setSound(soundUri)
-        }
+        }*//*
 
         notificationManager.notify(alert.id, builder.build())
-    }
+    }*/
 }

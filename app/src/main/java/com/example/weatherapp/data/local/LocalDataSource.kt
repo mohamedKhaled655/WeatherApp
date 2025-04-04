@@ -16,6 +16,12 @@ interface LocalDataSource {
     suspend fun deleteFavLocation(favLocation: FavoriteLocationEntity?):Int
 
 
+    suspend fun getAllWeathers():Flow<List<CurrentWeatherModel>>
+    suspend fun getWeatherByLatLng(lat: Double, lon: Double): CurrentWeatherModel?
+    suspend fun insertWeather(weatherModel: CurrentWeatherModel):Long
+    suspend fun deleteWeather(weatherModel: CurrentWeatherModel?):Int
+
+
     ///alert
 /*    suspend fun getAllAlert():Flow<List<AlertEntity>>
     suspend fun getActiveAlerts():Flow<List<AlertEntity>>
