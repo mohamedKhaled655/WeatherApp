@@ -22,19 +22,6 @@ interface WeatherDao {
     @Query("SELECT * FROM favorite_locations")
     fun getFavoritesLocations(): Flow<List<FavoriteLocationEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertWeather(weatherModel: CurrentWeatherModel):Long
-
-    @Delete
-    suspend fun deleteWeather(weatherModel: CurrentWeatherModel):Int
-
-    @Query("SELECT * FROM weather")
-    fun getAllWeathers(): Flow<List<CurrentWeatherModel>>
-
-    @Query("SELECT * FROM weather WHERE coord = :coord LIMIT 1")
-    fun getWeatherByLatLng(coord: Coord): CurrentWeatherModel?
-
-
 
 
 

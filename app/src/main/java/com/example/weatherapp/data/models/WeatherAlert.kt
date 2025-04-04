@@ -10,5 +10,6 @@ data class WeatherAlert(
     val startTime: Long,
     val endTime: Long,
     val isNotification: Boolean,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val desc:String
 )

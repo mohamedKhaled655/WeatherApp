@@ -11,4 +11,15 @@
     <string name="pressure">الضغط الجوي</string>
     <string name="humidity">نسبة الرطوبة</string>
     <string name="wind">سرعة الرياح</string>
+    <string name="no_internet_connection_showing_cached_data">عرض البيانات المحفوظة لعدم وجود إنترنت</string>
+    <string name="no_local_data_available">لا يوجد بيانات محفوظة محليًا</string>
+    <string name="no_local_data">لا يوجد بيانات مُخزنة</string>
+    <string name="failed_to_load_local_data">خطأ أثناء استرجاع البيانات المحلية: %1$s</string>
+    <string name="online_weather_updated">Online: Weather updated</string>
+    <string name="settings">الإعدادات</string>
+    <string name="location_type">نوع الموقع</string>
+    <string name="temperature_unit">وحدة درجة الحرارة</string>
+    <string name="wind_speed_unit">وحدة سرعة الرياح</string>
+    <string name="language">اللغة</string>
+    <string name="english">العربيه</string>
 </resources>

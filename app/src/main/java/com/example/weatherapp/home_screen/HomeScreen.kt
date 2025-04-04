@@ -1,5 +1,6 @@
 package com.example.weatherapp.home_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -51,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
@@ -65,6 +67,7 @@ import com.example.weatherapp.data.models.WeatherResponse
 
 import com.example.weatherapp.utils.CustomIconImage
 import com.example.weatherapp.utils.CustomLottieUrl
+import com.example.weatherapp.utils.Lang
 import com.example.weatherapp.utils.LocaleHelper
 import com.example.weatherapp.utils.TempUnit
 import com.example.weatherapp.utils.WindSpeedUnit
@@ -87,12 +90,20 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
         locationViewModel.getFreshLocation()
     }
     val location by remember { locationViewModel.locationState }
-
-    viewModel.getCurrentWeather(location.latitude,location.longitude)
+    val context= LocalContext.current
+    viewModel.getCurrentWeather(context,location.latitude,location.longitude)
     viewModel.getForecastWeather(location.latitude,location.longitude)
     val weatherState = viewModel.currentWeather.collectAsState()
     val forecastWeatherState = viewModel.forecastWeather.collectAsState()
-    val messageState = viewModel.message.collectAsState()
+    val message by viewModel.message.collectAsState()
+    LaunchedEffect(message) {
+
+        message?.takeIf { it.isNotEmpty() }?.let {
+            println("internet:55555555555555555 ${it}")
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessage()
+        }
+    }
     val snackBarHostState = remember { SnackbarHostState() }
 
     val isDarkTheme = isSystemInDarkTheme()
@@ -131,7 +142,7 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
                     state = rememberSwipeRefreshState(isRefreshingState),
                     onRefresh={
                         locationViewModel.getFreshLocation()
-                        viewModel.refreshWeather(location.latitude, location.longitude)
+                        viewModel.refreshWeather(context,location.latitude, location.longitude)
 
                     }
                 ){
@@ -148,8 +159,8 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
                                     CircularProgressIndicator()
                                 }
                                 is Response.Success -> {
-                                    WeatherHeader(state.data,tempUnit)
-                                    MainTemperatureDisplay(state.data,tempUnit,windSpeedUnit)
+                                    WeatherHeader(state.data,tempUnit,language)
+                                    MainTemperatureDisplay(state.data,tempUnit,windSpeedUnit,language)
                                 }
                                 is Response.Failure -> {
                                     Text(
@@ -191,7 +202,7 @@ fun HomeScreen(innerPadding: PaddingValues,viewModel: HomeViewModel,locationView
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun WeatherHeader( model:CurrentWeatherModel,tempUnit: TempUnit) {
+fun WeatherHeader( model:CurrentWeatherModel,tempUnit: TempUnit, language: Lang) {
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -213,7 +224,7 @@ fun WeatherHeader( model:CurrentWeatherModel,tempUnit: TempUnit) {
                 text = stringResource(
                     R.string.feels_like,
                     convertTemperature(tempUnit, model.main.feels_like),
-                    tempUnit.symbol
+                    tempUnit.getSymbol(language)
                 ),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodySmall
@@ -245,7 +256,7 @@ fun WeatherHeader( model:CurrentWeatherModel,tempUnit: TempUnit) {
 
 
 @Composable
-fun MainTemperatureDisplay(model:CurrentWeatherModel,tempUnit: TempUnit,windSpeedUnit:WindSpeedUnit) {
+fun MainTemperatureDisplay(model:CurrentWeatherModel,tempUnit: TempUnit,windSpeedUnit:WindSpeedUnit, language: Lang) {
     val composition by rememberLottieComposition(spec = LottieCompositionSpec.Url("https://lottie.host/a377149e-b277-4906-8c27-7458099ccbe9/rBB1rXg6L2.lottie"))
 
 
@@ -265,7 +276,7 @@ fun MainTemperatureDisplay(model:CurrentWeatherModel,tempUnit: TempUnit,windSpee
                 style = MaterialTheme.typography.displayLarge
             )
             Text(
-                text = tempUnit.symbol,
+                text = tempUnit.getSymbol(language),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.displayMedium,
                 modifier = Modifier.padding(top = Spacing.medium)
@@ -343,7 +354,7 @@ fun MainTemperatureDisplay(model:CurrentWeatherModel,tempUnit: TempUnit,windSpee
                         fontWeight = FontWeight.Bold,
 
                     )
-                    Text("${convertWindSpeed(windSpeedUnit,model.wind.speed)} ${windSpeedUnit.symbol}",style = MaterialTheme.typography.bodySmall)
+                    Text("${convertWindSpeed(windSpeedUnit,model.wind.speed)} ${windSpeedUnit.getSymbol(language)}",style = MaterialTheme.typography.bodySmall)
                     CustomLottieUrl("https://lottie.host/a377149e-b277-4906-8c27-7458099ccbe9/rBB1rXg6L2.lottie")
                 }
 

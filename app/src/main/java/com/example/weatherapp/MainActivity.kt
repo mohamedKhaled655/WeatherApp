@@ -27,12 +27,17 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -61,11 +66,16 @@ import com.example.weatherapp.home_screen.LocationViewModel
 import com.example.weatherapp.home_screen.LocationViewModelFactory
 import com.example.weatherapp.setting.SettingScreen
 import com.example.weatherapp.setting.SettingsFactory
+import com.example.weatherapp.setting.SettingsViewModel
 import com.example.weatherapp.ui.theme.WeatherAppTheme
+import com.example.weatherapp.utils.Lang
+import com.example.weatherapp.utils.NetworkUtils
 import com.example.weatherapp.utils.ScreenRoute
 
 class MainActivity : ComponentActivity() {
     private  val TAG = "MainActivity"
+    private lateinit var networkObserver: NetworkUtils
+
     lateinit var navHostController: NavHostController
 
   lateinit var locationViewModel: LocationViewModel
@@ -75,7 +85,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        networkObserver = NetworkUtils(this)
         setContent {
+
             navHostController= rememberNavController()
             WeatherAppTheme (){
                 //SetUpNavHost()
@@ -100,6 +112,11 @@ class MainActivity : ComponentActivity() {
                 100
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        networkObserver.checkConnectionStatus()
     }
 
     fun checkPermissions(): Boolean{
@@ -248,87 +265,116 @@ class MainActivity : ComponentActivity() {
     fun SetUpNavHost(innerPadding: PaddingValues) {
         val repoForGetWeatherDao=WeatherRepositoryImpl.getInstance(
             WeatherRemoteDataSource(RetrofitHelper.apiService),
-            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+            WeatherLocalDataSource(
+                WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                WeatherDatabase.getInstance(this@MainActivity).getHomeWeatherDao(),
                 //WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
                 WeatherDatabase.getInstance(this@MainActivity).alertDao())
 
         )
 
         val favFactory=FavLocationFactory(repoForGetWeatherDao)
-        NavHost(
-            navController = navHostController,
-            startDestination = ScreenRoute.HomeScreenRoute,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            composable<ScreenRoute.HomeScreenRoute> {
-                HomeScreen(innerPadding,viewModel(factory = HomeFactory(
-                    WeatherRepositoryImpl.getInstance(
-                        WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
-                           // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
-                            WeatherDatabase.getInstance(this@MainActivity).alertDao())
 
-                    )
-                )),
-                    viewModel(factory = LocationViewModelFactory(
-                        this@MainActivity
-                    ))
+        val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsFactory(
+            WeatherRepositoryImpl.getInstance(
+                WeatherRemoteDataSource(RetrofitHelper.apiService),
+                WeatherLocalDataSource(
+                    WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                    WeatherDatabase.getInstance(this@MainActivity).getHomeWeatherDao(),
+                    WeatherDatabase.getInstance(this@MainActivity).alertDao()
                 )
-            }
+            )
+        ))
 
-            composable<ScreenRoute.FavouriteScreenRoute> {
-                FavouriteScreen(
-                    navHostController,
-                    viewModel(
-                        factory = favFactory
-                    )
-                    )
-            }
-            composable<ScreenRoute.MapScreenRoute> {
-                MapScreen(
-                    navHostController,
-                    viewModel(
-                        factory = favFactory
-                    )
-                    )
-            }
-            composable<ScreenRoute.NotificationScreenRoute> {
-                AlarmScreen(innerPadding, viewModel(factory = AlertFactory(
-                    WeatherRepositoryImpl.getInstance(
-                        WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
-                           // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
-                            WeatherDatabase.getInstance(this@MainActivity).alertDao()
+        val language by settingsViewModel.language.collectAsState()
+        val layoutDirection = if (language == Lang.AR) LayoutDirection.Rtl else LayoutDirection.Ltr
+        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+            NavHost(
+                navController = navHostController,
+                startDestination = ScreenRoute.HomeScreenRoute,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                composable<ScreenRoute.HomeScreenRoute> {
+                    HomeScreen(innerPadding,viewModel(factory = HomeFactory(
+                        WeatherRepositoryImpl.getInstance(
+                            WeatherRemoteDataSource(RetrofitHelper.apiService),
+                            WeatherLocalDataSource(WeatherDatabase.getInstance(
+                                this@MainActivity).getWeatherDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).getHomeWeatherDao(),
+                                // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).alertDao())
+
                         )
-
-                    ), application
-                )
-                ))
-            }
-            composable<ScreenRoute.SettingScreenRoute> {
-                SettingScreen(innerPadding, viewModel(factory = SettingsFactory(repoForGetWeatherDao)))
-            }
-
-
-
-            composable<ScreenRoute.DetailsFavouriteScreenRoute> {backStackEntry->
-                val lat=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().latitude
-                val long=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().longitude
-
-                DetailsFavScreen(viewModel(factory = HomeFactory(
-                    WeatherRepositoryImpl.getInstance(
-                        WeatherRemoteDataSource(RetrofitHelper.apiService),
-                        WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
-                            //WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
-                            WeatherDatabase.getInstance(this@MainActivity).alertDao())
-
+                    )),
+                        viewModel(factory = LocationViewModelFactory(
+                            this@MainActivity
+                        ))
                     )
-                )),viewModel(factory = LocationViewModelFactory(
-                    this@MainActivity
-                )),lat,long)
-            }
+                }
 
+                composable<ScreenRoute.FavouriteScreenRoute> {
+                    FavouriteScreen(
+                        navHostController,
+                        viewModel(
+                            factory = favFactory
+                        )
+                    )
+                }
+                composable<ScreenRoute.MapScreenRoute> {
+                    MapScreen(
+                        navHostController,
+                        viewModel(
+                            factory = favFactory
+                        )
+                    )
+                }
+                composable<ScreenRoute.NotificationScreenRoute> {
+                    AlarmScreen(innerPadding, viewModel(factory = AlertFactory(
+                        WeatherRepositoryImpl.getInstance(
+                            WeatherRemoteDataSource(RetrofitHelper.apiService),
+                            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).getHomeWeatherDao(),
+                                // WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).alertDao()
+                            )
+
+                        ), application
+                    )
+                    ))
+                }
+                composable<ScreenRoute.SettingScreenRoute> {
+                    SettingScreen(
+                        innerPadding,
+                        viewModel(factory = SettingsFactory(repoForGetWeatherDao)),
+                        onNavigateToMap = {
+                            navHostController.navigate(ScreenRoute.MapScreenRoute)
+                        }
+                    )
+                }
+
+
+
+                composable<ScreenRoute.DetailsFavouriteScreenRoute> {backStackEntry->
+                    val lat=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().latitude
+                    val long=backStackEntry.toRoute<ScreenRoute.DetailsFavouriteScreenRoute>().longitude
+
+                    DetailsFavScreen(viewModel(factory = HomeFactory(
+                        WeatherRepositoryImpl.getInstance(
+                            WeatherRemoteDataSource(RetrofitHelper.apiService),
+                            WeatherLocalDataSource(WeatherDatabase.getInstance(this@MainActivity).getWeatherDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).getHomeWeatherDao(),
+                                //WeatherDatabase.getInstance(this@MainActivity).weatherAlertDao(),
+                                WeatherDatabase.getInstance(this@MainActivity).alertDao())
+
+                        )
+                    )),viewModel(factory = LocationViewModelFactory(
+                        this@MainActivity
+                    )),lat,long)
+                }
+
+            }
         }
+
     }
 }
 

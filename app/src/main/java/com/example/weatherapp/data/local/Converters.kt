@@ -13,70 +13,52 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 class Converter {
+    private val gson = Gson()
 
     @TypeConverter
-    fun fromCoord(coord: Coord): String {
-        return Gson().toJson(coord)
-    }
+    fun fromCoord(coord: Coord?): String? = gson.toJson(coord)
 
     @TypeConverter
-    fun toCoord(coordString: String): Coord {
-        val type = object : TypeToken<Coord>() {}.type
-        return Gson().fromJson(coordString, type)
-    }
+    fun toCoord(coordString: String?): Coord? =
+        coordString?.let { gson.fromJson(it, Coord::class.java) }
+
 
     @TypeConverter
-    fun fromWeatherList(weatherList: List<Weather>): String {
-        return Gson().toJson(weatherList)
-    }
+    fun fromWeatherList(weatherList: List<Weather>?): String? = gson.toJson(weatherList)
 
     @TypeConverter
-    fun toWeatherList(weatherListString: String): List<Weather> {
-        val type = object : TypeToken<List<Weather>>() {}.type
-        return Gson().fromJson(weatherListString, type)
-    }
+    fun toWeatherList(weatherListString: String?): List<Weather>? =
+        gson.fromJson(weatherListString, object : TypeToken<List<Weather>>() {}.type)
+
 
     @TypeConverter
-    fun fromMain(main: Main): String {
-        return Gson().toJson(main)
-    }
+    fun fromMain(main: Main?): String? = gson.toJson(main)
 
     @TypeConverter
-    fun toMain(mainString: String): Main {
-        val type = object : TypeToken<Main>() {}.type
-        return Gson().fromJson(mainString, type)
-    }
+    fun toMain(mainString: String?): Main? =
+        mainString?.let { gson.fromJson(it, Main::class.java) }
+
 
     @TypeConverter
-    fun fromWind(wind: Wind): String {
-        return Gson().toJson(wind)
-    }
+    fun fromWind(wind: Wind?): String? = gson.toJson(wind)
 
     @TypeConverter
-    fun toWind(windString: String): Wind {
-        val type = object : TypeToken<Wind>() {}.type
-        return Gson().fromJson(windString, type)
-    }
+    fun toWind(windString: String?): Wind? =
+        windString?.let { gson.fromJson(it, Wind::class.java) }
+
 
     @TypeConverter
-    fun fromClouds(clouds: Clouds): String {
-        return Gson().toJson(clouds)
-    }
+    fun fromClouds(clouds: Clouds?): String? = gson.toJson(clouds)
 
     @TypeConverter
-    fun toClouds(cloudsString: String): Clouds {
-        val type = object : TypeToken<Clouds>() {}.type
-        return Gson().fromJson(cloudsString, type)
-    }
+    fun toClouds(cloudsString: String?): Clouds? =
+        cloudsString?.let { gson.fromJson(it, Clouds::class.java) }
+
 
     @TypeConverter
-    fun fromSys(sys: Sys): String {
-        return Gson().toJson(sys)
-    }
+    fun fromSys(sys: Sys?): String? = gson.toJson(sys)
 
     @TypeConverter
-    fun toSys(sysString: String): Sys {
-        val type = object : TypeToken<Sys>() {}.type
-        return Gson().fromJson(sysString, type)
-    }
+    fun toSys(sysString: String?): Sys? =
+        sysString?.let { gson.fromJson(it, Sys::class.java) }
 }

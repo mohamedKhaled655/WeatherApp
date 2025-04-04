@@ -12,10 +12,11 @@ import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.data.models.WeatherAlert
 
 
-@Database(entities = [FavoriteLocationEntity::class,CurrentWeatherModel::class, WeatherAlert::class], version = 7)
+@Database(entities = [FavoriteLocationEntity::class,CurrentWeatherModel::class, WeatherAlert::class], version = 11, exportSchema = false)
 @TypeConverters(Converter::class)
 abstract class WeatherDatabase : RoomDatabase() {
     abstract fun getWeatherDao():WeatherDao
+    abstract fun getHomeWeatherDao():HomeWeatherDao
     //abstract fun weatherAlertDao():WeatherAlertDao
     abstract fun alertDao():AlertDao
 

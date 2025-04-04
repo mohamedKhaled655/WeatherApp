@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 
 class WeatherLocalDataSource (
     private val dao: WeatherDao,
+    private val homeWeatherDao: HomeWeatherDao,
     //private val alertDao: WeatherAlertDao,
     private val alaram: AlertDao) : LocalDataSource {
 
@@ -35,21 +36,21 @@ class WeatherLocalDataSource (
     }
 
     override suspend fun getAllWeathers(): Flow<List<CurrentWeatherModel>> {
-        return dao.getAllWeathers()
+        return homeWeatherDao.getAllWeathers()
     }
 
     override suspend fun getWeatherByLatLng(lat: Double, lon: Double): CurrentWeatherModel? {
         val coord=Coord(lat,lon)
-        return dao.getWeatherByLatLng(coord)
+        return homeWeatherDao.getWeatherByLatLng(lat,lon)
     }
 
     override suspend fun insertWeather(weatherModel: CurrentWeatherModel): Long {
-       return dao.insertWeather(weatherModel)
+       return homeWeatherDao.insertWeather(weatherModel)
     }
 
     override suspend fun deleteWeather(weatherModel: CurrentWeatherModel?): Int {
         return if(weatherModel!=null){
-            dao.deleteWeather(weatherModel)
+            homeWeatherDao.deleteWeather(weatherModel)
         }else{
             -1
         }

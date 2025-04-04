@@ -49,7 +49,7 @@ class AlertViewModel (private val repo: WeatherRepository,private val applicatio
     fun removeAlert(alert: WeatherAlert) {
         viewModelScope.launch {
 
-            cancelWeatherAlert(application.applicationContext)
+            cancelWeatherAlert(application.applicationContext, alert.id )
             repo.removeAlert(alert)
 
 
@@ -59,7 +59,7 @@ class AlertViewModel (private val repo: WeatherRepository,private val applicatio
         }
     }
 
-     fun sendWeatherAlert(alert: WeatherAlert) {
+     /*fun sendWeatherAlert(alert: WeatherAlert) {
         val channelId = "weather_alerts"
         val notificationManager = application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -78,7 +78,7 @@ class AlertViewModel (private val repo: WeatherRepository,private val applicatio
             .build()
 
         notificationManager.notify(alert.id, notification)
-    }
+    }*/
 
 
 

@@ -60,6 +60,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import com.example.weatherapp.data.models.CurrentWeatherModel
 import com.example.weatherapp.data.models.WeatherResponse
 import com.example.weatherapp.home_screen.DailyDetailed
@@ -68,6 +69,7 @@ import com.example.weatherapp.home_screen.MainTemperatureDisplay
 import com.example.weatherapp.home_screen.WeatherHeader
 
 import com.example.weatherapp.utils.CustomIconImage
+import com.example.weatherapp.utils.Lang
 import com.example.weatherapp.utils.TempUnit
 import com.example.weatherapp.utils.WindSpeedUnit
 import com.example.weatherapp.utils.toCelsius
@@ -80,8 +82,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun DetailsFavScreen(viewModel: HomeViewModel,locationViewModel: LocationViewModel,lat:Double,long:Double)
 {
-
-    viewModel.getCurrentWeather(lat, long)
+    val context= LocalContext.current
+    viewModel.getCurrentWeather(context,lat, long)
     viewModel.getForecastWeather(lat, long)
     val weatherState = viewModel.currentWeather.collectAsState()
     val forecastWeatherState = viewModel.forecastWeather.collectAsState()
@@ -110,7 +112,7 @@ fun DetailsFavScreen(viewModel: HomeViewModel,locationViewModel: LocationViewMod
                 state = rememberSwipeRefreshState(isRefreshingState),
                 onRefresh={
                     locationViewModel.getFreshLocation()
-                    viewModel.refreshWeather(lat, long)
+                    viewModel.refreshWeather(context,lat, long)
 
                 }
             ){
@@ -127,8 +129,8 @@ fun DetailsFavScreen(viewModel: HomeViewModel,locationViewModel: LocationViewMod
                                 CircularProgressIndicator()
                             }
                             is Response.Success -> {
-                                WeatherHeader(state.data,TempUnit.Celsius)
-                                MainTemperatureDisplay(state.data,TempUnit.Celsius,WindSpeedUnit.MeterPerSec)
+                                WeatherHeader(state.data,TempUnit.Celsius,Lang.EN)
+                                MainTemperatureDisplay(state.data,TempUnit.Celsius,WindSpeedUnit.MeterPerSec,Lang.EN)
                             }
                             is Response.Failure -> {
                                 Text(

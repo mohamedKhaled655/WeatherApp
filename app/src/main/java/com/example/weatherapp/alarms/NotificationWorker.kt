@@ -8,6 +8,8 @@ import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
@@ -23,6 +25,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.example.weatherapp.R
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.WeatherLocalDataSource
 import com.example.weatherapp.data.models.WeatherAlert
@@ -44,36 +47,30 @@ class NotificationWorker(val context: Context, workerParams: WorkerParameters) :
     }
 
     override fun doWork(): Result {
-
-
-
-        val alarmType = inputData.getString("alarmType") ?: "Notification"
+        val alarmType = inputData.getString("alarmType") ?: "Weather Alert"
+        val desc = inputData.getString("DESC") ?: "description"
         val alertId = inputData.getInt("ALERT_ID", 0)
         val startTime = inputData.getLong("START_TIME", System.currentTimeMillis())
+        val isNotification = inputData.getBoolean("IS_NOTIFICATION", true)
+        val isActive = inputData.getBoolean("IS_ACTIVE", true)
 
-        if (alarmType == "Notification") {
-            sendNotification(
-                WeatherAlert(
-                    id = alertId,
-                    type = alarmType,
-                    startTime = startTime,
-                    endTime = startTime + 3600000,
-                    isNotification = true,
-                    isActive = true
-                )
-            )
-        } else {
+
+        val alert = WeatherAlert(
+            id = alertId,
+            type = alarmType,
+            startTime = startTime,
+            endTime = startTime + 3600000,
+            isNotification = isNotification,
+            isActive = isActive,
+            desc = desc
+        )
+
+
+        sendNotification(alert)
+
+
+        if (!isNotification) {
             playAlarmSound()
-            sendNotification(
-                WeatherAlert(
-                    id = alertId,
-                    type = alarmType,
-                    startTime = startTime,
-                    endTime = startTime + 3600000,
-                    isNotification = true,
-                    isActive = true
-                )
-            )
         }
 
         return Result.success()
@@ -82,6 +79,22 @@ class NotificationWorker(val context: Context, workerParams: WorkerParameters) :
     private fun sendNotification(alert: WeatherAlert) {
         val context = applicationContext
         val notificationManager = NotificationManagerCompat.from(context)
+
+
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+
+        intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+
+
+        intent?.putExtra("ALERT_ID", alert.id)
+
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            alert.id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -93,13 +106,14 @@ class NotificationWorker(val context: Context, workerParams: WorkerParameters) :
         }
 
         val builder = NotificationCompat.Builder(context, "channel_id")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.notification)
             .setContentTitle("Weather Alert: ${alert.type}")
-            .setContentText("Tap to open the app.")
+            .setContentText("${alert.desc}")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        notificationManager.notify(1, builder.build())
+        notificationManager.notify(alert.id, builder.build())
     }
 
     private fun playAlarmSound() {
@@ -122,33 +136,32 @@ class NotificationWorker(val context: Context, workerParams: WorkerParameters) :
 }
 
 
-fun scheduleNotificationWithWorkManager(context: Context,alert: WeatherAlert) {
-
+fun scheduleNotificationWithWorkManager(context: Context, alert: WeatherAlert) {
     val delay = maxOf(alert.startTime - System.currentTimeMillis(), 0)
     val inputData = workDataOf(
         "ALERT_ID" to alert.id,
         "alarmType" to alert.type,
-        "START_TIME" to alert.startTime
+        "START_TIME" to alert.startTime,
+        "IS_NOTIFICATION" to alert.isNotification,
+        "IS_ACTIVE" to alert.isActive,
+        "DESC" to alert.desc,
     )
 
     val workRequest = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
-        .setInitialDelay(delay, TimeUnit.SECONDS)
-        .setInputData(
-            inputData
-        )
+        .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+        .setInputData(inputData)
         .build()
 
-
     WorkManager.getInstance(context).enqueueUniqueWork(
-        "weather_alert_work",
+        "weather_alert_${alert.id}",
         ExistingWorkPolicy.REPLACE,
         workRequest
     )
 
-    Toast.makeText(context, "Weather Alert Set! :${delay} seconds", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "Weather Alert Set! In: ${delay / 1000} seconds", Toast.LENGTH_SHORT).show()
 }
 
-fun cancelWeatherAlert(context: Context) {
-    WorkManager.getInstance(context).cancelUniqueWork("weather_alert_work")
+fun cancelWeatherAlert(context: Context, alertId: Int) {
+    WorkManager.getInstance(context).cancelUniqueWork("weather_alert_${alertId}")
     Toast.makeText(context, "Weather Alert Canceled!", Toast.LENGTH_SHORT).show()
 }

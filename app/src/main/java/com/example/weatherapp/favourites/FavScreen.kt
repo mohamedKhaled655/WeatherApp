@@ -154,7 +154,7 @@ fun FavouriteScreen(navHostController: NavHostController,viewModel: FavouriteVie
 
             FloatingActionButton(
                 onClick = {
-                    Toast.makeText(context, "Maps", Toast.LENGTH_SHORT).show()
+                   // Toast.makeText(context, "Maps", Toast.LENGTH_SHORT).show()
                     navHostController.navigate(ScreenRoute.MapScreenRoute)
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -244,7 +244,7 @@ fun MapScreen(navHostController: NavHostController,viewModel: FavouriteViewModel
 
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 4f)
+        position = CameraPosition.fromLatLngZoom(LatLng(30.0444, 31.2357), 5f)
     }
     val selectedLocation = remember { mutableStateOf(LatLng(30.0444, 31.2357)) }
 

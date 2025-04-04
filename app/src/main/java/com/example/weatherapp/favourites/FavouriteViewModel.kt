@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.data.models.FavoriteLocationEntity
 import com.example.weatherapp.data.repo.WeatherRepository
+import com.example.weatherapp.utils.Lang
 import com.example.weatherapp.utils.Response
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
@@ -123,9 +124,61 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
         }
     }*/
 
-
-
     fun fetchLocationDetailFromLatLng(context: Context, latLng: LatLng) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                val currentLanguage = repo.getLanguage()
+
+
+                val locale = when (currentLanguage) {
+                    Lang.AR -> Locale("ar")
+                    Lang.EN -> Locale.ENGLISH
+
+                    else -> Locale.getDefault()
+                }
+
+                val geocoder = Geocoder(context, locale)
+                val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+
+                val locationEntity = if (addresses.isNullOrEmpty()) {
+                    FavoriteLocationEntity(
+                        country = if (currentLanguage == Lang.AR) "دولة غير معروفة" else "Unknown Country",
+                        name = if (currentLanguage == Lang.AR) "مدينة غير معروفة" else "Unknown City",
+                        latitude = latLng.latitude,
+                        longitude = latLng.longitude
+                    )
+                } else {
+                    val address = addresses[0]
+                    FavoriteLocationEntity(
+                        country = address.countryName ?: if (currentLanguage == Lang.AR) "دولة غير معروفة" else "Unknown Country",
+                        name = address.locality ?: address.subAdminArea ?: if (currentLanguage == Lang.AR) "مدينة غير معروفة" else "Unknown City",
+                        latitude = address.latitude,
+                        longitude = address.longitude
+                    )
+                }
+
+                _locationDetails.value = locationEntity
+            } catch (e: Exception) {
+                Log.e("MapError", "Error getting location details", e)
+
+
+                val currentLanguage = repo.getLanguage()
+                val unknownCountry = if (currentLanguage == Lang.AR) "دولة غير معروفة" else "Unknown Country"
+                val unknownCity = if (currentLanguage == Lang.AR) "مدينة غير معروفة" else "Unknown City"
+
+                _locationDetails.value = FavoriteLocationEntity(
+                    country = unknownCountry,
+                    name = unknownCity,
+                    latitude = latLng.latitude,
+                    longitude = latLng.longitude
+                )
+            }
+        }
+    }
+
+
+    /*fun fetchLocationDetailFromLatLng(context: Context, latLng: LatLng) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val geocoder = Geocoder(context, Locale.getDefault())
@@ -149,7 +202,7 @@ class FavouriteViewModel(private val repo: WeatherRepository) :ViewModel(){
                 _locationDetails.value = FavoriteLocationEntity(country = "Unknown Country", name = "Unknown City", latitude = 0.0, longitude = 0.0)
             }
         }
-    }
+    }*/
 
     fun clearMessage() {
         _message.value = ""

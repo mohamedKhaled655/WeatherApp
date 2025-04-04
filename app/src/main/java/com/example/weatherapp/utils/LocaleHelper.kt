@@ -18,4 +18,9 @@ object LocaleHelper {
     fun isRTL(languageCode: String): Boolean {
         return languageCode == "ar"
     }
+
+    fun getCurrentLanguage(context: Context): String {
+        val locale = Locale.getDefault()
+        return locale.language
+    }
 }

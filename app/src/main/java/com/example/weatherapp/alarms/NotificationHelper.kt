@@ -16,10 +16,6 @@ import com.example.weatherapp.data.models.WeatherAlert
 
 class NotificationHelper(private val context: Context) {
 
-    companion object {
-        const val NOTIFICATION_CHANNEL_ID = "weather_notification_channel"
-        const val ALARM_CHANNEL_ID = "weather_alarm_channel"
-    }
 
      fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

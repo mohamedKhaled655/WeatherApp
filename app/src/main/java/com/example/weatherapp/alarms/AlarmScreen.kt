@@ -57,7 +57,7 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
     var showAddDialog by remember { mutableStateOf(false) }
     val alerts by viewModel.alarms.collectAsState(initial = emptyList())
 
-    // Request notification permission
+
     RequestNotificationPermission(context)
 
     Scaffold(
@@ -108,11 +108,15 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
                         AlertItem(
                             alert = alert,
                             onToggleActive = { toggledAlert ->
-                               // viewModel.addAlert(toggledAlert.copy(isActive = !toggledAlert.isActive))
-
+                                viewModel.addAlert(toggledAlert.copy(isActive = !toggledAlert.isActive))
+                                if (!toggledAlert.isActive) {
+                                    scheduleNotificationWithWorkManager(context, toggledAlert.copy(isActive = true))
+                                } else {
+                                    cancelWeatherAlert(context, toggledAlert.id)
+                                }
                             },
                             onDelete = {
-                                cancelWeatherAlert(context)
+                                cancelWeatherAlert(context, alert.id)
                                 viewModel.removeAlert(alert)
 
                             }
@@ -128,7 +132,7 @@ fun AlarmScreen(innerPadding: PaddingValues, viewModel: AlertViewModel) {
             onDismiss = { showAddDialog = false },
             onAddAlert = { alert ->
                 viewModel.addAlert(alert)
-                viewModel.sendWeatherAlert(alert)
+                //viewModel.sendWeatherAlert(alert)
                 scheduleNotificationWithWorkManager(context, alert)
                 showAddDialog = false
                 Toast.makeText(context, "Weather alert set successfully", Toast.LENGTH_SHORT).show()
@@ -232,10 +236,11 @@ fun AddWeatherAlertDialog(
     onAddAlert: (WeatherAlert) -> Unit
 ) {
     var alertType by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
     var useNotification by remember { mutableStateOf(true) }
     var selectedDuration by remember { mutableStateOf("1 hour") }
 
-    // Date and time state
+
     val calendar = remember { Calendar.getInstance() }
     var selectedStartDate by remember { mutableStateOf(calendar.timeInMillis) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -259,7 +264,7 @@ fun AddWeatherAlertDialog(
         else -> 60 * 60 * 1000L
     }
 
-    // Date picker
+
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedStartDate)
         DatePickerDialog(
@@ -294,7 +299,7 @@ fun AddWeatherAlertDialog(
         }
     }
 
-    // Time picker
+
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour = Calendar.getInstance().apply { timeInMillis = selectedStartDate }.get(Calendar.HOUR_OF_DAY),
@@ -352,6 +357,15 @@ fun AddWeatherAlertDialog(
                     value = alertType,
                     onValueChange = { alertType = it },
                     label = { Text("Alert Type (e.g., Rain, Storm)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                TextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = { Text("set desc") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -467,7 +481,8 @@ fun AddWeatherAlertDialog(
                             startTime = selectedStartDate,
                             endTime = selectedStartDate + durationMillis,
                             isNotification = useNotification,
-                            isActive = true
+                            isActive = true,
+                            desc = desc
                         )
                         onAddAlert(alert)
                     }
