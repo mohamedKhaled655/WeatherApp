@@ -56,9 +56,9 @@ Please refer to the official documentation to select the appropriate endpoints f
 ## 📸 Screenshots
 ![Mobile App Screen Mockup, Floating](https://github.com/user-attachments/assets/611c27d0-1c91-43b2-9d35-df7bb4c6e7ef)
 
-*You can add screenshots or screen recordings here to showcase UI.*
 
----
+
+
 
 ## 🧑‍💻 Author
 Mohamed Khaled Ali
