@@ -50,14 +50,11 @@ This app uses the [OpenWeatherMap API](https://api.openweathermap.org/data/2.5/f
 Please refer to the official documentation to select the appropriate endpoints for different features.
 
 
-![Screenshot_20250410_214102_WeatherApp](https://github.com/user-attachments/assets/cb208230-76ba-4b4d-81f5-2715ea472c00)
-![Screenshot_20250410_214143_WeatherApp](https://github.com/user-attachments/assets/5a170ecf-e96f-4701-a8b1-d82cdf478bca)
-![Screenshot_20250410_214159_WeatherApp](https://github.com/user-attachments/assets/7e6ed349-b24e-422a-9126-a367457c5469)
-![Screenshot_20250410_214328_WeatherApp](https://github.com/user-attachments/assets/3bb91528-2df2-4ad0-ad9b-a042fa58d478)
-![Screenshot_20250410_214335_WeatherApp](https://github.com/user-attachments/assets/6e1d1469-0161-4975-9f09-efdd102fb245)
+
 
 
 ## 📸 Screenshots
+![Mobile App Screen Mockup, Floating](https://github.com/user-attachments/assets/611c27d0-1c91-43b2-9d35-df7bb4c6e7ef)
 
 *You can add screenshots or screen recordings here to showcase UI.*
 
@@ -65,6 +62,6 @@ Please refer to the official documentation to select the appropriate endpoints f
 
 ## 🧑‍💻 Author
 Mohamed Khaled Ali
-**محمد خالد علي** 
+
 Feel free to connect or suggest improvements!
 
