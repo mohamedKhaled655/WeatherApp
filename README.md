@@ -54,9 +54,7 @@ Please refer to the official documentation to select the appropriate endpoints f
 
 
 ## 📸 Screenshots
-<img src="https://github.com/user-attachments/assets/611c27d0-1c91-43b2-9d35-df7bb4c6e7ef" alt="Mobile App Screen Mockup" width="300"/>
-
-
+![Mobile App Screen Mockup](https://github.com/user-attachments/assets/611c27d0-1c91-43b2-9d35-df7bb4c6e7ef)
 
 
 
